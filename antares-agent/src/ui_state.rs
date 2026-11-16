@@ -503,7 +503,8 @@ impl PanelState {
                             if idx > 0 {
                                 let new_idx = idx - 1;
                                 self.history_cursor = Some(new_idx);
-                                self.input_draft = self.draft_history[new_idx].clone();
+                                self.input_draft =
+                                    self.draft_history[new_idx].clone();
                             }
                         }
                     }

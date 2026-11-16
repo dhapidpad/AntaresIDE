@@ -28,7 +28,9 @@ pub use context::{
 };
 pub use error::AgentError;
 pub use mcp::{McpBridge, McpToolError};
-pub use metrics::{BudgetViolation, LatencyStats, PerformanceBudgets, PerformanceMetrics};
+pub use metrics::{
+    BudgetViolation, LatencyStats, PerformanceBudgets, PerformanceMetrics,
+};
 pub use patch::{
     CommandProposal, CommandStatus, PatchError, PatchHunk, PatchPipeline,
     PatchProposal, PatchResult, ProposalStatus,

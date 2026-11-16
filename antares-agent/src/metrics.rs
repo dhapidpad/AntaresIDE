@@ -9,10 +9,22 @@ const MAX_SAMPLES: usize = 1_000;
 /// Violations reported when performance exceeds specified budgets.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BudgetViolation {
-    TypingLatencyExceeded { measured_ms: u64, budget_ms: u64 },
-    ScrollFrameExceeded { measured_ms: u64, budget_ms: u64 },
-    CancellationLatencyExceeded { measured_ms: u64, budget_ms: u64 },
-    EventQueueOverflow { measured_depth: usize, max_depth: usize },
+    TypingLatencyExceeded {
+        measured_ms: u64,
+        budget_ms: u64,
+    },
+    ScrollFrameExceeded {
+        measured_ms: u64,
+        budget_ms: u64,
+    },
+    CancellationLatencyExceeded {
+        measured_ms: u64,
+        budget_ms: u64,
+    },
+    EventQueueOverflow {
+        measured_depth: usize,
+        max_depth: usize,
+    },
 }
 
 /// Latency statistics calculated from metric samples.

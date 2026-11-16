@@ -49,14 +49,16 @@ fn test_performance_metrics_and_budget_enforcement() {
     metrics.set_queue_depth(150); // > 100
 
     let violations = metrics.check_budgets();
-    assert!(violations.iter().any(|v| matches!(
-        v,
-        BudgetViolation::TypingLatencyExceeded { .. }
-    )));
-    assert!(violations.iter().any(|v| matches!(
-        v,
-        BudgetViolation::EventQueueOverflow { .. }
-    )));
+    assert!(
+        violations
+            .iter()
+            .any(|v| matches!(v, BudgetViolation::TypingLatencyExceeded { .. }))
+    );
+    assert!(
+        violations
+            .iter()
+            .any(|v| matches!(v, BudgetViolation::EventQueueOverflow { .. }))
+    );
 }
 
 #[test]
@@ -81,7 +83,9 @@ fn test_keyboard_navigation_and_draft_history() {
     assert_eq!(state.draft_history.len(), 3);
 
     // Type a new draft that hasn't been sent yet
-    state.reduce(PanelAction::SetInputDraft("my unfinished draft".to_string()));
+    state.reduce(PanelAction::SetInputDraft(
+        "my unfinished draft".to_string(),
+    ));
 
     // Press Up arrow: navigate history backward
     state.reduce(PanelAction::NavigateHistoryPrev);
@@ -120,7 +124,9 @@ fn test_streaming_stress_10000_chunks_throughput_and_memory() {
     state.active_session_id = Some("sess-stress".to_string());
     state.lifecycle = PanelLifecycle::Ready;
 
-    state.reduce(PanelAction::SetInputDraft("Generate large code".to_string()));
+    state.reduce(PanelAction::SetInputDraft(
+        "Generate large code".to_string(),
+    ));
     state.reduce(PanelAction::SubmitPrompt);
     assert_eq!(state.lifecycle, PanelLifecycle::Streaming);
 
