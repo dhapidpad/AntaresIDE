@@ -1,34 +1,32 @@
 # Antares implementation status
 
-- **Phase:** P5 completed — Agent capabilities, multi-turn session persistence, specialist role catalog, token budget tracking, and background tasks verified green in CI.
-- **Done in this phase (Phase 5):**
-  - Multi-Turn Session Persistence (`antares-agent/src/persistence.rs`):
-    - `PersistentSession`: complete transcript archive capturing messages, tool activities, streaming states, timestamps, active role, and model identifiers.
-    - `SessionStorage`: atomic disk operations with temporary files and atomic rename to prevent corruption under `.antares/sessions/`.
-    - Session management: load by ID, list stored sessions, and delete session.
-  - Specialist Role Catalog & Capabilities (`antares-agent/src/capabilities.rs`):
-    - `AgentRole`: profile configuration specifying ID, display name, description, system prompt prefix, and allowed tools whitelist.
-    - Built-in specialist roles: `coder` (full development & patch proposal), `reviewer` (strictly read-only security audit), and `architect` (high-level design and patch proposals).
-    - `ProviderConfig`: multi-provider runtime configuration (`Octomind`, `Gemini`, `Anthropic`, `OpenAI`, `Custom`).
-    - `TokenTracker`: per-session token accounting, financial cost estimation, and threshold budget alerting.
-    - `TaskManager`: background task supervisor tracking task lifecycle (`Queued`, `Running`, `Completed`, `Failed`, `Cancelled`), progress percentage, and timestamps.
-  - Antares Branding Synchronization:
-    - Updated window title to `{workspace} - Antares IDE` (`lapce-app/src/app.rs`).
-    - Updated about menu items to `About Antares IDE` (`lapce-app/src/app.rs`, `lapce-app/src/title.rs`, `lapce-app/src/command.rs`).
-    - Updated about popup to `Antares IDE` with link to `https://github.com/dhapidpad/AntaresIDE` (`lapce-app/src/about.rs`).
-    - Updated Linux desktop metadata to `Antares IDE` (`extra/linux/dev.lapce.lapce.desktop`).
-  - Integration Test Suite (`antares-agent/tests/capabilities_test.rs`):
-    - Multi-turn session persistence, atomic write, load, and deletion.
-    - Specialist role capability bounds and tool permission enforcement.
-    - Provider configuration and token budget tracking threshold breaches.
-    - Background task lifecycle progression and cancellation.
-  - CI Verification: GitHub Actions [Run 43903967729](https://github.com/dhapidpad/AntaresIDE/actions/runs/43903967729) — **ALL 42 TESTS PASSED**, `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
+- **Phase:** P8 completed — ALL PHASES (P0 through P8) FULLY IMPLEMENTED & VERIFIED GREEN IN CI.
+- **Done in this phase (Phase 8 — Reliability, Crash Recovery, Privacy Controls & Release Readiness):**
+  - Crash Recovery & Write-Ahead Logging (`antares-agent/src/recovery.rs`):
+    - `RecoveryManager`: file-backed write-ahead log (`recovery.wal`) tracking active prompts and execution states.
+    - `InterruptedTurn`: captures in-flight prompt details (`session_id`, `prompt`, `phase`, `started_at_ms`, `last_active_at_ms`).
+    - Turn restoration: `record_turn_start`, `update_phase`, `record_turn_finish`, and `recover_interrupted_turn` with user notice.
+  - Privacy Filter & Credential Scrubbing (`antares-agent/src/audit.rs`):
+    - `PrivacyFilter`: redacts sensitive tokens (Gemini, generic API keys, Octomind tokens, Bearer headers, GitHub tokens) before output.
+  - Append-Only Security Audit Trail (`antares-agent/src/audit.rs`):
+    - `AuditLog`: structured, immutable append-only logger writing JSON-formatted entries to `audit.log`.
+    - `AuditEventKind`: `SessionStarted`, `PatchApproved`, `PatchRejected`, `CommandApproved`, `CommandRejected`, `BudgetBreached`, `CrashRecovered`.
+  - System Health & Release Readiness Checklist (`antares-agent/src/health.rs`):
+    - `HealthAuditor`: validates release metadata (`dev.antares.antares`), storage permissions, workspace containment, and third-party attribution (`THIRD_PARTY_LICENSES.md`).
+  - Integration Test Suite (`antares-agent/tests/reliability_release_test.rs`):
+    - Crash recovery WAL & turn restoration.
+    - Privacy credential scrubbing and audit log persistence.
+    - Release readiness checklist verification.
+  - CI Verification: GitHub Actions [Run 43976187414](https://github.com/dhapidpad/AntaresIDE/actions/runs/43976187414) — **ALL 61 TESTS PASSED**, `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
 - **Done in previous phases:**
   - Phase 0: Fork bootstrap, Antares overlay integration, workspace setup, green CI ([Run 43890242012](https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012)).
   - Phase 1: Octomind ACP supervisor, stdio isolation, bounded stderr ring-buffer, AgentSession state machine, contract test suite ([Run 43894324584](https://github.com/dhapidpad/AntaresIDE/actions/runs/43894324584)).
   - Phase 2: Native Floem AI panel, pure headless domain state machine & reducer, session bridge, and 24/24 tests verified green in CI ([Run 43897881034](https://github.com/dhapidpad/AntaresIDE/actions/runs/43897881034)).
   - Phase 3: Editor context, path validation & workspace containment, secret redaction, and resource budgeting ([Run 43900622891](https://github.com/dhapidpad/AntaresIDE/actions/runs/43900622891)).
   - Phase 4: Host-owned MCP bridge, patch proposals with cryptographic hashing, atomic apply with undo, command approvals ([Run 43902459163](https://github.com/dhapidpad/AntaresIDE/actions/runs/43902459163)).
-- **Not done:** UI & performance hardening (P6); desktop packaging (P7); reliability & public release readiness (P8).
-- **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is executed and confirmed via GitHub Actions CI.
+  - Phase 5: Multi-turn session persistence, specialist role catalog (`coder`, `reviewer`, `architect`), multi-provider config, token budget tracking, background tasks ([Run 43903967729](https://github.com/dhapidpad/AntaresIDE/actions/runs/43903967729)).
+  - Phase 6: UI & performance hardening, latency tracking, budget violations, transcript windowing, 10k streaming chunks stress test ([Run 43973861313](https://github.com/dhapidpad/AntaresIDE/actions/runs/43973861313)).
+  - Phase 7: Antares branding, onboarding wizard (`OnboardingService`, `FirstRunStatus`), release packaging metadata (`ReleaseMetadata`, `PlatformTarget`), update checks ([Run 43974535723](https://github.com/dhapidpad/AntaresIDE/actions/runs/43974535723)).
+- **Not done:** None. All phases in `docs/02-ROADMAP.md` (P0 through P8) are complete and verified.
+- **Blockers/limits:** None.
 - **Assumptions:** Lapce upstream master as pinned; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned; ACP over stdio is the primary transport; Gemini 3.8 Flash is the Antigravity coding model.
