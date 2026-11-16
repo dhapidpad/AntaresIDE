@@ -176,6 +176,7 @@ impl ProcessSupervisor {
         let pending_clone = pending_requests.clone();
         let event_tx_clone = event_tx.clone();
         let running_clone = is_running.clone();
+        let stderr_buf_reader_clone = stderr_buffer.clone();
         let reader_handle = thread::Builder::new()
             .name("antares-agent-stdout".to_string())
             .spawn(move || {
@@ -227,10 +228,14 @@ impl ProcessSupervisor {
                             // Inbound requests from the server (e.g. MCP tool execution request)
                         }
                         Err(e) => {
-                            // Ignore or log malformed lines without panicking or crashing reader
-                            tracing::warn!(
-                                "ignoring malformed agent stdout line: {e}"
-                            );
+                            // Ignore or record malformed lines without panicking or crashing reader
+                            let mut buf = stderr_buf_reader_clone.lock();
+                            if buf.len() >= MAX_STDERR_LINES {
+                                buf.pop_front();
+                            }
+                            buf.push_back(format!(
+                                "warning: malformed agent stdout line: {e}"
+                            ));
                         }
                     }
                 }
