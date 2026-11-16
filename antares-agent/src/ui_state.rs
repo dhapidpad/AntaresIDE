@@ -291,12 +291,12 @@ impl PanelState {
             }
             PanelAction::SessionSelected(session_id) => {
                 if self.active_session_id.as_deref() != Some(&session_id) {
-                    if self.is_streaming() {
-                        if let Some(ref active_id) = self.active_session_id {
-                            effects.push(PanelSideEffect::SendCancel {
-                                session_id: active_id.clone(),
-                            });
-                        }
+                    if self.is_streaming()
+                        && let Some(ref active_id) = self.active_session_id
+                    {
+                        effects.push(PanelSideEffect::SendCancel {
+                            session_id: active_id.clone(),
+                        });
                     }
                     self.active_session_id = Some(session_id);
                     self.messages.clear();
@@ -344,14 +344,12 @@ impl PanelState {
                 }
             }
             PanelAction::AppendTextDelta(delta) => {
-                if self.lifecycle == PanelLifecycle::Streaming {
-                    if let Some(last_msg) = self.messages.last_mut() {
-                        if last_msg.role == ChatRole::Assistant
-                            && last_msg.is_streaming
-                        {
-                            last_msg.content.push_str(&delta);
-                        }
-                    }
+                if self.lifecycle == PanelLifecycle::Streaming
+                    && let Some(last_msg) = self.messages.last_mut()
+                    && last_msg.role == ChatRole::Assistant
+                    && last_msg.is_streaming
+                {
+                    last_msg.content.push_str(&delta);
                 }
             }
             PanelAction::AddToolActivity {
@@ -359,38 +357,36 @@ impl PanelState {
                 name,
                 arguments,
             } => {
-                if self.lifecycle == PanelLifecycle::Streaming {
-                    if let Some(last_msg) = self.messages.last_mut() {
-                        if last_msg.role == ChatRole::Assistant {
-                            last_msg.tool_activities.push(ToolActivity {
-                                id,
-                                name,
-                                arguments,
-                                status: ToolStatus::Running,
-                                result: None,
-                            });
-                        }
-                    }
+                if self.lifecycle == PanelLifecycle::Streaming
+                    && let Some(last_msg) = self.messages.last_mut()
+                    && last_msg.role == ChatRole::Assistant
+                {
+                    last_msg.tool_activities.push(ToolActivity {
+                        id,
+                        name,
+                        arguments,
+                        status: ToolStatus::Running,
+                        result: None,
+                    });
                 }
             }
             PanelAction::UpdateToolActivity { id, status, result } => {
-                if let Some(last_msg) = self.messages.last_mut() {
-                    if let Some(tool) =
+                if let Some(last_msg) = self.messages.last_mut()
+                    && let Some(tool) =
                         last_msg.tool_activities.iter_mut().find(|t| t.id == id)
-                    {
-                        tool.status = status;
-                        if result.is_some() {
-                            tool.result = result;
-                        }
+                {
+                    tool.status = status;
+                    if result.is_some() {
+                        tool.result = result;
                     }
                 }
             }
             PanelAction::FinishStreaming => {
                 if self.lifecycle == PanelLifecycle::Streaming {
-                    if let Some(last_msg) = self.messages.last_mut() {
-                        if last_msg.role == ChatRole::Assistant {
-                            last_msg.is_streaming = false;
-                        }
+                    if let Some(last_msg) = self.messages.last_mut()
+                        && last_msg.role == ChatRole::Assistant
+                    {
+                        last_msg.is_streaming = false;
                     }
                     self.lifecycle = PanelLifecycle::Ready;
                     self.status_message = Some("Ready".to_string());
@@ -412,12 +408,12 @@ impl PanelState {
                     self.lifecycle,
                     PanelLifecycle::Cancelling | PanelLifecycle::Streaming
                 ) {
-                    if let Some(last_msg) = self.messages.last_mut() {
-                        if last_msg.role == ChatRole::Assistant {
-                            last_msg.is_streaming = false;
-                            if last_msg.content.is_empty() {
-                                last_msg.content = "[Cancelled by user]".to_string();
-                            }
+                    if let Some(last_msg) = self.messages.last_mut()
+                        && last_msg.role == ChatRole::Assistant
+                    {
+                        last_msg.is_streaming = false;
+                        if last_msg.content.is_empty() {
+                            last_msg.content = "[Cancelled by user]".to_string();
                         }
                     }
                     self.lifecycle = PanelLifecycle::Ready;
@@ -431,11 +427,11 @@ impl PanelState {
                 self.status_message = Some(reason);
             }
             PanelAction::ReportError { message, code } => {
-                if let Some(last_msg) = self.messages.last_mut() {
-                    if last_msg.role == ChatRole::Assistant && last_msg.is_streaming
-                    {
-                        last_msg.is_streaming = false;
-                    }
+                if let Some(last_msg) = self.messages.last_mut()
+                    && last_msg.role == ChatRole::Assistant
+                    && last_msg.is_streaming
+                {
+                    last_msg.is_streaming = false;
                 }
                 self.lifecycle = PanelLifecycle::Error {
                     message: message.clone(),
@@ -446,12 +442,12 @@ impl PanelState {
             }
             PanelAction::SwitchWorkspace => {
                 // Cancel stale work if currently streaming
-                if self.is_streaming() {
-                    if let Some(ref session_id) = self.active_session_id {
-                        effects.push(PanelSideEffect::SendCancel {
-                            session_id: session_id.clone(),
-                        });
-                    }
+                if self.is_streaming()
+                    && let Some(ref session_id) = self.active_session_id
+                {
+                    effects.push(PanelSideEffect::SendCancel {
+                        session_id: session_id.clone(),
+                    });
                 }
                 self.active_session_id = None;
                 self.messages.clear();
