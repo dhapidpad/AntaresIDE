@@ -187,6 +187,7 @@ pub struct WindowTabData {
     pub call_hierarchy_data: CallHierarchyData,
     pub about_data: AboutData,
     pub alert_data: AlertBoxData,
+    pub antares_data: crate::antares::data::AntaresPanelData,
     pub layout_rect: RwSignal<Rect>,
     pub title_height: RwSignal<f64>,
     pub status_height: RwSignal<f64>,
@@ -572,6 +573,7 @@ impl WindowTabData {
             },
             about_data,
             alert_data,
+            antares_data: crate::antares::data::AntaresPanelData::new(cx, common.clone()),
             layout_rect: cx.create_rw_signal(Rect::ZERO),
             title_height,
             status_height,
@@ -2678,7 +2680,8 @@ impl WindowTabData {
             | PanelKind::CallHierarchy
             | PanelKind::DocumentSymbol
             | PanelKind::References
-            | PanelKind::Implementation => {
+            | PanelKind::Implementation
+            | PanelKind::Antares => {
                 // Some panels don't accept focus (yet). Fall back to visibility check
                 // in those cases.
                 self.panel.is_panel_visible(&kind)

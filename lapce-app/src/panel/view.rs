@@ -507,6 +507,13 @@ fn panel_view(
                     implementation_panel(window_tab_data.clone(), position)
                         .into_any()
                 }
+                PanelKind::Antares => {
+                    crate::antares::panel::antares_panel(
+                        window_tab_data.clone(),
+                        position,
+                    )
+                    .into_any()
+                }
             };
             view.style(|s| s.size_pct(100.0, 100.0))
         },
@@ -563,6 +570,7 @@ fn panel_picker(
                 PanelKind::DocumentSymbol => "Document Symbol",
                 PanelKind::References => "References",
                 PanelKind::Implementation => "Implementation",
+                PanelKind::Antares => "Antares AI",
             };
             let icon = p.svg_name();
             let is_active = {

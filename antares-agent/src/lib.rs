@@ -8,6 +8,7 @@ pub mod error;
 pub mod protocol;
 pub mod session;
 pub mod supervisor;
+pub mod ui_state;
 
 use std::path::PathBuf;
 
@@ -15,6 +16,10 @@ pub use error::AgentError;
 pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
 pub use session::{AgentSession, SessionState};
 pub use supervisor::{ProcessLaunchOptions, ProcessSupervisor, SupervisorEvent};
+pub use ui_state::{
+    ChatMessage, ChatRole, PanelAction, PanelLifecycle, PanelSideEffect, PanelState,
+    SessionSummary, ToolActivity, ToolStatus,
+};
 
 /// Process configuration owned by Antares.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

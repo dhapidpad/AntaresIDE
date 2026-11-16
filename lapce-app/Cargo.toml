@@ -9,6 +9,7 @@ rust-version = { workspace = true }
 [dependencies]
 alacritty_terminal = { workspace = true }
 anyhow             = { workspace = true }
+antares-agent      = { path = "../antares-agent" }
 backtrace          = { workspace = true }
 chrono             = { workspace = true }
 clap               = { workspace = true }
