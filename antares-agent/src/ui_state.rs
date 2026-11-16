@@ -164,7 +164,11 @@ impl PanelAction {
             } => Some(PanelAction::AddToolActivity {
                 id,
                 name,
-                arguments,
+                arguments: if arguments.is_null() {
+                    None
+                } else {
+                    Some(arguments)
+                },
             }),
             SessionEvent::ToolResult { id, result } => {
                 Some(PanelAction::UpdateToolActivity {
@@ -696,7 +700,7 @@ mod tests {
             PanelAction::from_session_event(SessionEvent::ToolCall {
                 id: "tc1".to_string(),
                 name: "test".to_string(),
-                arguments: None,
+                arguments: Value::Null,
             }),
             Some(PanelAction::AddToolActivity {
                 id: "tc1".to_string(),
