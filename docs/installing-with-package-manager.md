@@ -1,20 +1,10 @@
-## Installation With Package Manager
+## Installation & Packaging
 
-Lapce is available in below software repositories:
+Antares IDE builds native desktop binaries for Linux, Windows, and macOS.
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/lapce.svg)](https://repology.org/project/lapce/versions)
+Official releases and installation artifacts are distributed on GitHub Releases:
+- [Antares IDE Releases](https://github.com/dhapidpad/AntaresIDE/releases)
 
-Lapce is also additionally available via:
-
-- [Flatpak](https://flathub.org/apps/details/dev.lapce.lapce)
-- [Scoop](https://scoop.sh/#/apps?q=lapce)
-
-
-For Fedora Linux, Lapce is (unofficially) available via dnf RPM package manager, using nightly as of 2024.01:
-
-- [copr](https://copr.fedorainfracloud.org/coprs/titaniumtown/lapce/)
-
-```bash
-sudo dnf copr enable titaniumtown/lapce 
-sudo dnf install lapce
-```
+### Upstream Heritage Notice
+Antares IDE is built upon the lightning-fast Lapce editor engine with Octomind as an independent ACP AI agent runtime. Upstream editor packages and package manager entries remain documented for reference:
+- [Upstream Lapce Releases](https://github.com/lapce/lapce/releases)

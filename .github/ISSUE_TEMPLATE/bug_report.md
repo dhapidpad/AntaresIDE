@@ -1,29 +1,29 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us improve Antares IDE
 title: ''
 labels: 'C-bug'
 assignees: ''
 
 ---
 
-## Lapce Version
+## Antares IDE Version
 
-The Lapce version you are using, which can be found in "About Lapce" at the top right settings icon. 
+The Antares IDE version you are using, which can be found in "About Antares IDE" at the top right settings icon or Help menu.
 
 ## System information
 
-the operating system used, including its version, e.g. Windows 10, Ubuntu 18.04
+The operating system used, including its version, e.g. Windows 11, Ubuntu 22.04, macOS Sonoma.
 
 ## Describe the bug
+
 A clear and concise description of what the bug is.
 
 ## Additional information
 
-Other information that can be used to further reproduce or isolate the problem.
-This commonly includes:
+Other information that can be used to further reproduce or isolate the problem:
 
 - screenshots
 - logs
-- theories about what might be going wrong
-- workarounds that you used
+- reproduction steps
+- workarounds used

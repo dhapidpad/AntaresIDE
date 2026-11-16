@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an idea or capability for Antares IDE
 title: ''
 labels: 'C-feature'
 assignees: ''
@@ -21,4 +21,4 @@ A clear and concise description of any alternative solutions or features you've 
 
 ## Additional context
 
-Add any other context or screenshots about the feature request here.
+Add any other context, agent workflows, or screenshots about the feature request here.
