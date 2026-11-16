@@ -250,14 +250,13 @@ impl ContextService {
         }
 
         // 6. Security filter: Block known sensitive filenames
-        if let Some(file_name) = canonical.file_name().and_then(|n| n.to_str()) {
-            if self.protected_names.contains(file_name)
-                || file_name.starts_with(".env")
-            {
-                return Err(ContextError::ProtectedFileBlocked(
-                    file_name.to_string(),
-                ));
-            }
+        if let Some(file_name) = canonical.file_name().and_then(|n| n.to_str())
+            && (self.protected_names.contains(file_name)
+                || file_name.starts_with(".env"))
+        {
+            return Err(ContextError::ProtectedFileBlocked(
+                file_name.to_string(),
+            ));
         }
 
         // 7. Security filter: Block secret extensions
@@ -411,26 +410,26 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
         let mut redacted_line = line.to_string();
 
         // 1. AWS Access Key (AKIA...)
-        if let Some(start) = redacted_line.find("AKIA") {
-            if redacted_line.len() >= start + 20 {
-                let candidate = &redacted_line[start..start + 20];
-                if candidate.chars().all(|c| c.is_ascii_alphanumeric()) {
-                    redacted_line
-                        .replace_range(start..start + 20, "[REDACTED: AWS_KEY]");
-                    count += 1;
-                }
+        if let Some(start) = redacted_line.find("AKIA")
+            && redacted_line.len() >= start + 20
+        {
+            let candidate = &redacted_line[start..start + 20];
+            if candidate.chars().all(|c| c.is_ascii_alphanumeric()) {
+                redacted_line
+                    .replace_range(start..start + 20, "[REDACTED: AWS_KEY]");
+                count += 1;
             }
         }
 
         // 2. GitHub Personal Access Token (ghp_ / gho_ / github_pat_)
         for prefix in &["ghp_", "gho_"] {
-            if let Some(start) = redacted_line.find(prefix) {
-                if redacted_line.len() >= start + 40 {
-                    let end = (start + 40).min(redacted_line.len());
-                    redacted_line
-                        .replace_range(start..end, "[REDACTED: GITHUB_TOKEN]");
-                    count += 1;
-                }
+            if let Some(start) = redacted_line.find(prefix)
+                && redacted_line.len() >= start + 40
+            {
+                let end = (start + 40).min(redacted_line.len());
+                redacted_line
+                    .replace_range(start..end, "[REDACTED: GITHUB_TOKEN]");
+                count += 1;
             }
         }
 
@@ -452,36 +451,36 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
         }
 
         // 4. OpenAI / Generic sk- key
-        if let Some(start) = redacted_line.find("sk-") {
-            if !redacted_line[start..].starts_with("[REDACTED:") {
-                let rest = &redacted_line[start..];
-                let end_offset = rest
-                    .find(|c: char| {
-                        c.is_whitespace() || c == '"' || c == '\'' || c == ';'
-                    })
-                    .unwrap_or(rest.len());
-                if end_offset >= 20 {
-                    redacted_line.replace_range(
-                        start..start + end_offset,
-                        "[REDACTED: API_KEY]",
-                    );
-                    count += 1;
-                }
+        if let Some(start) = redacted_line.find("sk-")
+            && !redacted_line[start..].starts_with("[REDACTED:")
+        {
+            let rest = &redacted_line[start..];
+            let end_offset = rest
+                .find(|c: char| {
+                    c.is_whitespace() || c == '"' || c == '\'' || c == ';'
+                })
+                .unwrap_or(rest.len());
+            if end_offset >= 20 {
+                redacted_line.replace_range(
+                    start..start + end_offset,
+                    "[REDACTED: API_KEY]",
+                );
+                count += 1;
             }
         }
 
         // 5. Google / Gemini API key (AIza...)
-        if let Some(start) = redacted_line.find("AIza") {
-            if redacted_line.len() >= start + 39 {
-                let candidate = &redacted_line[start..start + 39];
-                if candidate
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-                {
-                    redacted_line
-                        .replace_range(start..start + 39, "[REDACTED: GEMINI_KEY]");
-                    count += 1;
-                }
+        if let Some(start) = redacted_line.find("AIza")
+            && redacted_line.len() >= start + 39
+        {
+            let candidate = &redacted_line[start..start + 39];
+            if candidate
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+            {
+                redacted_line
+                    .replace_range(start..start + 39, "[REDACTED: GEMINI_KEY]");
+                count += 1;
             }
         }
 
@@ -493,16 +492,17 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
                 if let Some(eq_pos) = after.find(['=', ':']) {
                     let val_part = after[eq_pos + 1..].trim_start();
                     let trimmed = val_part.trim();
-                    if trimmed.starts_with('"') && trimmed.len() > 2 {
-                        if let Some(end_quote) = trimmed[1..].find('"') {
-                            let secret_val = &trimmed[1..=end_quote];
-                            if !secret_val.starts_with("[REDACTED")
-                                && secret_val.len() > 3
-                            {
-                                redacted_line = redacted_line
-                                    .replace(secret_val, "[REDACTED: SECRET_VALUE]");
-                                count += 1;
-                            }
+                    if trimmed.starts_with('"')
+                        && trimmed.len() > 2
+                        && let Some(end_quote) = trimmed[1..].find('"')
+                    {
+                        let secret_val = &trimmed[1..=end_quote];
+                        if !secret_val.starts_with("[REDACTED")
+                            && secret_val.len() > 3
+                        {
+                            redacted_line = redacted_line
+                                .replace(secret_val, "[REDACTED: SECRET_VALUE]");
+                            count += 1;
                         }
                     }
                 }
