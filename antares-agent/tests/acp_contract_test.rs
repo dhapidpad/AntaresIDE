@@ -46,7 +46,7 @@ fn test_acp_fixture_frames_parsing() {
             antares_agent::codec::JsonRpcMessage::Request(r) => {
                 assert!(!r.method.is_empty());
             }
-            antares_agent::codec::JsonRpcMessage::Response(_) => {}
+            antares_agent::codec::JsonRpcMessage::Success(_) => {}
             antares_agent::codec::JsonRpcMessage::Notification(n) => {
                 assert_eq!(n.method, "session/update");
             }
