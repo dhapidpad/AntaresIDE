@@ -33,7 +33,7 @@ fn test_crash_recovery_wal_and_interrupted_turn_restoration() {
         )
         .unwrap();
 
-    // 4. Simulate process crash by creating a new RecoveryManager pointing to same WAL
+    // 4. Simulate crash by creating a new RecoveryManager pointing to same WAL
     let recovery_reboot = RecoveryManager::new(dir.path());
     let interrupted = recovery_reboot.check_recovery().unwrap();
     assert!(interrupted.is_some());
@@ -68,7 +68,8 @@ fn test_privacy_scrubbing_and_audit_logging() {
     let raw_log = concat!(
         "Connecting with key AIzaSyD1234567890123456789012345678901 and ",
         "token Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret and ",
-        "sk-proj-abc12345678901234567890 and ghp_123456789012345678901234567890123456"
+        "sk-proj-abc12345678901234567890 and ",
+        "ghp_123456789012345678901234567890123456"
     );
     let scrubbed = PrivacyFilter::scrub(raw_log);
 

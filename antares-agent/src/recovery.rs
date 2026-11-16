@@ -140,7 +140,10 @@ impl RecoveryManager {
         if let Some(turn) = self.check_recovery()? {
             self.record_turn_finish()?;
             let notice = format!(
-                "[System: Previous turn was interrupted during {:?}. Prompt restored.]",
+                concat!(
+                    "[System: Previous turn was interrupted ",
+                    "during {:?}. Prompt restored.]"
+                ),
                 turn.phase
             );
             Ok(Some((turn, notice)))
