@@ -131,11 +131,10 @@ impl OnboardingService {
                 binary_path,
                 version: "0.72.0".to_string(),
             },
-            Err(AgentError::BinaryNotFound) | Err(AgentError::InvalidBinaryPath(_)) => {
-                FirstRunStatus::NeedsSetup {
-                    recommended_runtime: "octomind-v0.72.0".to_string(),
-                }
-            }
+            Err(AgentError::BinaryNotFound)
+            | Err(AgentError::InvalidBinaryPath(_)) => FirstRunStatus::NeedsSetup {
+                recommended_runtime: "octomind-v0.72.0".to_string(),
+            },
             Err(e) => FirstRunStatus::Disabled {
                 reason: format!("Agent detection error: {}", e),
             },
