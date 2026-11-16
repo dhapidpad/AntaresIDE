@@ -1,19 +1,20 @@
 //! Antares agent integration boundary.
 //!
-//! P0 contains only binary discovery and typed lifecycle configuration. ACP transport,
-//! process supervision and session handling are added in P1 after contract tests are prepared
-//! from the pinned Octomind documentation.
+//! Provides child process supervision, JSON-RPC 2.0 stdio transport,
+//! session lifecycle, and contract fixtures for the Octomind 0.72.0 ACP integration.
+
+pub mod codec;
+pub mod error;
+pub mod protocol;
+pub mod session;
+pub mod supervisor;
 
 use std::path::PathBuf;
 
-/// Errors returned by the Antares agent layer.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum AgentError {
-    /// An explicitly configured binary path does not exist or is not a regular file.
-    InvalidBinaryPath(PathBuf),
-    /// No Octomind executable was found in the configured path or process PATH.
-    BinaryNotFound,
-}
+pub use error::AgentError;
+pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
+pub use session::{AgentSession, SessionState};
+pub use supervisor::{ProcessLaunchOptions, ProcessSupervisor, SupervisorEvent};
 
 /// Process configuration owned by Antares.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

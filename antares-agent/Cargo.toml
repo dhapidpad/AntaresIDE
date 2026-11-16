@@ -12,4 +12,8 @@ description = "Antares IDE agent process and ACP integration boundary"
 path = "src/lib.rs"
 
 [dependencies]
-# Keep P0 dependency-light. Add ACP/async/process dependencies only with a tested design in P1.
+crossbeam-channel = { workspace = true }
+parking_lot       = { workspace = true }
+serde             = { workspace = true, features = ["derive"] }
+serde_json        = { workspace = true }
+thiserror         = { workspace = true }
