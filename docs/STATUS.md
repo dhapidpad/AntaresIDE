@@ -1,21 +1,33 @@
 # Antares implementation status
 
-- **Phase:** P1 completed — Octomind ACP child process supervisor, JSON-RPC 2.0 framing, session manager, and mock contract test suite verified green in CI.
-- **Done in this phase (Phase 1):**
-  - Designed and implemented `antares-agent` crate adhering to ACP 2024-11-05 specification.
-  - Single-line JSON-RPC 2.0 framing codec with strict validation (`antares-agent/src/codec.rs`).
-  - Protocol request and notification models (`initialize`, `session/new`, `session/load`, `session/prompt`, `session/cancel`, `session/update`) with streaming content blocks (`antares-agent/src/protocol.rs`).
-  - `ProcessSupervisor` (`antares-agent/src/supervisor.rs`): child process management, isolated stdin writer thread, stdout JSON-RPC dispatch loop, independent stderr reader thread with bounded ring buffer (`MAX_STDERR_LINES = 500`) to prevent deadlocks and memory exhaustion.
-  - `AgentSession` state machine (`antares-agent/src/session.rs`): high-level thread-safe API for session lifecycle, event subscription, cancellation, and graceful teardown.
-  - Comprehensive contract test suite (`tests/acp_contract_test.rs`) using headless Python mock agent (`fake_agent.py`) and recorded ACP frames (`session_flow.jsonl`).
-  - Validated 12/12 tests passing, clean formatting, and 0 clippy warnings under Rust 1.98.0 (Edition 2024) on GitHub Actions CI ([Run 43894324584](https://github.com/dhapidpad/AntaresIDE/actions/runs/43894324584)).
-- **Done in previous phase (Phase 0):**
-  - Live fork created: `https://github.com/dhapidpad/AntaresIDE` from `lapce/lapce`.
-  - Working branch initialized: `agy/antares-bootstrap`.
-  - Antares overlay applied cleanly without breaking upstream Lapce files.
-  - Root `Cargo.toml` workspace members updated with `antares-agent`.
-  - CI verification green ([Run 43890242012](https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012)).
-- **Not done:** Native Floem AI panel & session UI basics (P2); workspace context gathering & MCP bridge (P3); diff view & apply pipeline (P4); multi-turn session persistence & rollback (P5); performance & crash recovery hardening (P6); desktop packaging & release (P7).
-- **Next:** Phase 2 — AI Panel & Session Basics (native Floem agent panel in `lapce-app/src/antares/`, chat history scroll view, input editor with prompt dispatch, cancel button, session indicator, and event dispatch bridge).
+- **Phase:** P2 completed — Native Floem AI panel, pure headless domain state machine & reducer, session bridge, and 24/24 tests verified green in CI.
+- **Done in this phase (Phase 2):**
+  - Pure headless panel domain state machine & reducer (`antares-agent/src/ui_state.rs`):
+    - Full lifecycle states: `Idle`, `Starting`, `Ready`, `Streaming`, `Cancelling`, `AuthRequired`, `Disconnected`, `Error`.
+    - Chat message model with author roles (`User`, `Assistant`, `System`), incremental streaming text accumulation, and tool activity tracking (`Running`, `Completed`, `Failed`).
+    - Session management model (`SessionSummary`, active session selector, session creation/switching).
+    - Event mapping bridge translating ACP `SessionEvent`s (`TextDelta`, `ToolCall`, `ToolResult`, `Completed`) into typed `PanelAction`s.
+    - Pure reducer logic with deterministic side effects (`LaunchProcess`, `SendPrompt`, `SendCancel`, `NotifyError`).
+    - Guarded prompt submission (`can_send`) and cancellation (`can_cancel`).
+    - Workspace switch handler: cancels in-flight agent turns and safely clears stale context.
+  - Native Floem AI Panel in Lapce (`lapce-app/src/antares/`):
+    - `lapce-app/src/antares/data.rs`: `AntaresPanelData` reactive bridge binding `PanelState` to Floem `RwSignal`.
+    - `lapce-app/src/antares/panel.rs`: `antares_panel` view with header bar (status badge, clear transcript icon), scrollable message transcript with user/assistant bubbles and tool activity cards, error/auth banner, and input composer with Send and Cancel buttons.
+    - `lapce-app/src/panel/kind.rs`: Registered `PanelKind::Antares` with `LapceIcons::LIGHTBULB` and default position `RightTop`.
+    - `lapce-app/src/panel/data.rs`: Placed `PanelKind::Antares` in `default_panel_order()` for `PanelPosition::RightTop`.
+    - `lapce-app/src/panel/view.rs`: Added view dispatch for `PanelKind::Antares` and tooltip "Antares AI".
+    - `lapce-app/src/window_tab.rs`: Wired `antares_data` into `WindowTabData` and added focus toggle handling.
+    - `docs/PATCHES.md`: Updated with all upstream touchpoints, reasons, and re-apply hints.
+  - Integration & Unit Test Suite (`antares-agent/tests/panel_reducer_test.rs`):
+    - `test_all_lifecycle_state_transitions`: All 8 lifecycle states verified.
+    - `test_streaming_long_transcript_does_not_rebuild_messages`: Verified 1,000 streamed token deltas accumulate in-place without transcript reallocation.
+    - `test_cancel_and_workspace_switch_cancels_stale_work`: Verified cancellation side-effects and context invalidation.
+    - `test_tool_activity_tracking_in_transcript`: Verified tool activity lifecycle and output tracking.
+  - CI Verification: GitHub Actions [Run 43897881034](https://github.com/dhapidpad/AntaresIDE/actions/runs/43897881034) — **ALL 24 TESTS PASSED**, `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
+- **Done in previous phases:**
+  - Phase 0: Fork bootstrap, Antares overlay integration, workspace setup, green CI ([Run 43890242012](https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012)).
+  - Phase 1: Octomind ACP supervisor, stdio isolation, bounded stderr ring-buffer, AgentSession state machine, contract test suite ([Run 43894324584](https://github.com/dhapidpad/AntaresIDE/actions/runs/43894324584)).
+- **Not done:** Workspace context gathering & read-only bridge (P3); diff view & apply pipeline (P4); multi-turn session persistence & rollback (P5); performance & crash recovery hardening (P6); desktop packaging & release (P7).
+- **Next:** Phase 3 — Editor Context (active file, selected range, diagnostics through Lapce APIs, canonical path checks, ignore rules, redaction, bounded context token budgets).
 - **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is executed and confirmed via GitHub Actions CI and GitHub Codespaces.
 - **Assumptions:** Lapce upstream master as pinned; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned; ACP over stdio is the primary transport; Gemini 3.8 Flash is the Antigravity coding model.
