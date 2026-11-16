@@ -208,11 +208,11 @@ impl ProcessSupervisor {
                         }
                         Ok(JsonRpcMessage::Notification(notif)) => {
                             if notif.method == "session/update" {
-                                if let Some(params_val) = notif.params {
+                                if let Some(ref params_val) = notif.params {
                                     if let Ok(params) = serde_json::from_value::<
                                         SessionUpdateParams,
                                     >(
-                                        params_val
+                                        params_val.clone()
                                     ) {
                                         let _ = event_tx_clone.send(
                                             SupervisorEvent::SessionUpdate(params),
