@@ -82,3 +82,6 @@ $(INSTALL)-%: $(DMG_NAME)-%
 
 clean: ## Remove all build artifacts
 	@cargo clean
+
+# Antares IDE targets (kept separate from upstream targets)
+-include Makefile.antares

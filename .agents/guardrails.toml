@@ -1,0 +1,11 @@
+# Defense-in-depth Octomind policy. Confirm exact capability ownership against the pinned
+# Octomind release's doc/usage/18-guardrails.md and effective runtime tool list.
+# The primary control is the Antares role allowlist + host-owned MCP bridge.
+
+[[guard]]
+match = "shell"
+message = "Antares read-only profile blocks shell execution. Submit a command request to the IDE instead."
+
+[[guard]]
+match = "filesystem-write"
+message = "Antares read-only profile blocks direct filesystem writes. Submit a patch proposal instead."

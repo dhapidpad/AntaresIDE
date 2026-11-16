@@ -1,0 +1,23 @@
+# Release metadata read from https://api.github.com/repos/Muvon/octomind/releases/latest
+# as of 2026-11-16. SHA-256 values are GitHub release-asset digests for the named archive.
+# Re-verify the release tag, asset name and digest before every deliberate upgrade.
+version = "0.72.0"
+release_url = "https://github.com/Muvon/octomind/releases/tag/0.72.0"
+
+linux_x86_64_asset = "octomind-0.72.0-x86_64-unknown-linux-musl.tar.gz"
+sha256_linux_x86_64 = "20fe3d901ebd21387065e448f067177c36daf515361bb36079657cf1de066913"
+
+linux_aarch64_asset = "octomind-0.72.0-aarch64-unknown-linux-musl.tar.gz"
+sha256_linux_aarch64 = "df71324133f2e32b7b6e40893345795764ec6305e20dec2732e8e0f16bbd3fd7"
+
+windows_x86_64_asset = "octomind-0.72.0-x86_64-pc-windows-msvc.zip"
+sha256_windows_x86_64 = "7dd108f0fb40ab1014967734b857d764b7f9cc6abb4dc632831ba60d978c2698"
+
+windows_aarch64_asset = "octomind-0.72.0-aarch64-pc-windows-msvc.zip"
+sha256_windows_aarch64 = "7fd87849c7b262692a4c09f7c177ebc0e1a6f6eb1128017471366f8531ed9a3c"
+
+macos_x86_64_asset = "octomind-0.72.0-x86_64-apple-darwin.tar.gz"
+sha256_macos_x86_64 = "396c0d82b168483edc9393db1bc9ee9e3cc2478625436a55131e81c339056642"
+
+macos_aarch64_asset = "octomind-0.72.0-aarch64-apple-darwin.tar.gz"
+sha256_macos_aarch64 = "8400b7bdb7fca333a14e2ab8f452278f2530a28b21de21f80161563612c2cbd6"

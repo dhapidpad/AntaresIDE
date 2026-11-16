@@ -1,0 +1,51 @@
+name: Antares IDE desktop build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["antares-v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: linux
+          - os: windows-latest
+            artifact: windows
+          - os: macos-latest
+            artifact: macos
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98.0
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang libssl-dev libfontconfig1-dev libfreetype6-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev pkg-config libvulkan-dev \
+            libwayland-dev libx11-xcb-dev libxcb-shape0-dev libxcb-xfixes0-dev xorg-dev
+      - name: Build Lapce and proxy
+        run: cargo build --release --bin lapce --bin lapce-proxy
+      - name: Collect binaries
+        shell: bash
+        run: |
+          mkdir -p dist
+          for file in target/release/lapce target/release/lapce.exe target/release/lapce-proxy target/release/lapce-proxy.exe; do
+            if [ -f "$file" ]; then cp "$file" dist/; fi
+          done
+          test -n "$(find dist -maxdepth 1 -type f -print -quit)"
+          printf '%s\n' "Antares IDE based on Lapce; see LICENSE and THIRD_PARTY_LICENSES.md." > dist/BUILD-INFO.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: antares-${{ matrix.artifact }}
+          path: dist/*
+          if-no-files-found: error

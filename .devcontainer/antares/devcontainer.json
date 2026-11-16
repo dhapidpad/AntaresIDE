@@ -1,0 +1,41 @@
+{
+  "name": "Antares IDE Codespaces",
+  "image": "mcr.microsoft.com/devcontainers/rust:1-bookworm",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "configureZshAsDefaultShell": false,
+      "installOhMyZsh": false,
+      "upgradePackages": false
+    }
+  },
+  "containerEnv": {
+    "CARGO_TERM_COLOR": "always",
+    "DO_NOT_TRACK": "1",
+    "ANTARES_CODESPACES": "1"
+  },
+  "postCreateCommand": "bash .devcontainer/antares/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "vadimcn.vscode-lldb",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "rust-analyzer.check.command": "clippy",
+        "rust-analyzer.cargo.buildScripts.enable": true,
+        "editor.formatOnSave": false,
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  }
+}

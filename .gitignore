@@ -12,3 +12,18 @@ vendor/
 *.patch
 *.tar
 *.gz
+
+
+# Antares local files and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.log
+*.py[cod]
+__pycache__/
+/target/
+/dist/
+/build/
+/.antares-local/

@@ -1,0 +1,15 @@
+[package]
+name = "antares-agent"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+homepage.workspace = true
+description = "Antares IDE agent process and ACP integration boundary"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# Keep P0 dependency-light. Add ACP/async/process dependencies only with a tested design in P1.

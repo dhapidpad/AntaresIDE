@@ -1,0 +1,29 @@
+name: Antares upstream drift report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch Lapce upstream
+        run: |
+          git remote add upstream https://github.com/lapce/lapce.git || true
+          git fetch upstream --prune
+      - name: Report divergence (no automatic merge)
+        shell: bash
+        run: |
+          base="$(git remote show upstream | sed -n '/HEAD branch/s/.*: //p' | head -1)"
+          base="${base:-master}"
+          echo "Upstream base: $base"
+          git log --oneline --left-right "HEAD...upstream/$base" | head -100
+          echo "This workflow is report-only. Review docs/PATCHES.md before any sync."

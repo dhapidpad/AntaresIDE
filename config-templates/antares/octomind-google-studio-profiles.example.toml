@@ -1,0 +1,16 @@
+# This is a CONFIG FRAGMENT, not a complete replacement for Octomind config.toml.
+# First let Octomind generate/validate its default config, then merge these entries while preserving other settings.
+# Supply GOOGLE_STUDIO_API_KEY through the environment/Codespaces secret; never write it here.
+# Model ID confirmed in the current Google AI Studio catalog: gemini-3.8-flash.
+# Validate the chosen model against your installed Octomind version before enabling it in the UI.
+
+auto_capabilities = false
+
+[model]
+name = "google-studio:gemini-3.8-flash"
+
+[supervisor.model]
+name = "google-studio:gemini-3.8-flash"
+
+[compression.model]
+name = "google-studio:gemini-3.8-flash"

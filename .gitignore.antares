@@ -1,0 +1,13 @@
+# Antares additions — append to the upstream .gitignore during bootstrap
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.log
+*.py[cod]
+__pycache__/
+/target/
+/dist/
+/build/
+/.antares-local/

@@ -1,0 +1,60 @@
+name: Antares IDE CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: antares-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  DO_NOT_TRACK: "1"
+
+jobs:
+  antares-fast:
+    name: Scaffold + Antares crate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98.0
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Validate scaffold
+        run: bash scripts/scaffold-check.sh
+      - name: Check whitespace
+        run: git diff --check
+      - name: Format Antares crate
+        run: cargo fmt -p antares-agent -- --check
+      # Unlocked on purpose for the first bootstrap commit; run antares-ci.sh locked after Cargo.lock is committed.
+      - name: Check Antares crate
+        run: cargo check -p antares-agent
+      - name: Test Antares crate
+        run: cargo test -p antares-agent
+      - name: Clippy Antares crate
+        run: cargo clippy -p antares-agent --all-targets -- -D warnings
+
+  workspace-check:
+    name: Full Lapce + Antares workspace (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98.0
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Lapce Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang libssl-dev libfontconfig1-dev libfreetype6-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev pkg-config libvulkan-dev \
+            libwayland-dev libx11-xcb-dev libxcb-shape0-dev libxcb-xfixes0-dev xorg-dev
+      - name: Check full workspace
+        run: cargo check --workspace
