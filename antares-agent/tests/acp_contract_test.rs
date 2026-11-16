@@ -1,9 +1,9 @@
 use std::{path::PathBuf, process::Command, sync::Arc, time::Duration};
 
 use antares_agent::{
+    AgentError, AgentSession, ProcessLaunchOptions, ProcessSupervisor,
     codec::decode_line,
     protocol::{ContentBlock, SessionEvent},
-    AgentError, AgentSession, ProcessLaunchOptions, ProcessSupervisor,
 };
 
 fn find_python() -> Option<&'static str> {
@@ -32,7 +32,8 @@ fn test_acp_fixture_frames_parsing() {
         .join("acp")
         .join("session_flow.jsonl");
 
-    let content = std::fs::read_to_string(fixture_path).expect("fixture file should exist");
+    let content =
+        std::fs::read_to_string(fixture_path).expect("fixture file should exist");
     let mut parsed_count = 0;
     for line in content.lines() {
         let trimmed = line.trim();
@@ -71,7 +72,8 @@ fn test_mock_agent_happy_path_session_flow() {
         .with_arg("--scenario")
         .with_arg("echo");
 
-    let supervisor = Arc::new(ProcessSupervisor::spawn(options).expect("spawn supervisor"));
+    let supervisor =
+        Arc::new(ProcessSupervisor::spawn(options).expect("spawn supervisor"));
     let session = AgentSession::new(supervisor.clone());
 
     // 1. Initialize
@@ -79,10 +81,7 @@ fn test_mock_agent_happy_path_session_flow() {
         .initialize(Duration::from_secs(3))
         .expect("initialize handshake");
     assert_eq!(init_res.protocol_version, "2024-11-05");
-    assert_eq!(
-        init_res.agent_info.name.as_deref(),
-        Some("mock-octomind")
-    );
+    assert_eq!(init_res.agent_info.name.as_deref(), Some("mock-octomind"));
 
     // 2. New session
     let sess_res = session
@@ -118,7 +117,10 @@ fn test_mock_agent_happy_path_session_flow() {
 
     assert_eq!(tokens, vec!["Hello ", "from mock agent!"]);
     let prompt_res = prompt_handle.join().unwrap().expect("prompt result");
-    assert_eq!(prompt_res.get("status").and_then(|s| s.as_str()), Some("completed"));
+    assert_eq!(
+        prompt_res.get("status").and_then(|s| s.as_str()),
+        Some("completed")
+    );
 
     // 5. Cancel
     session.cancel().expect("cancel notification");
@@ -144,7 +146,8 @@ fn test_mock_agent_crash_detection() {
     // Wait slightly for child to exit with 42
     std::thread::sleep(Duration::from_millis(200));
 
-    let res = supervisor.send_request("initialize", None, Duration::from_millis(500));
+    let res =
+        supervisor.send_request("initialize", None, Duration::from_millis(500));
     assert!(res.is_err());
     match res {
         Err(AgentError::ProcessExited(code)) => {
@@ -169,7 +172,8 @@ fn test_mock_agent_timeout_handling() {
 
     let supervisor = ProcessSupervisor::spawn(options).expect("spawn supervisor");
     // Request with small timeout
-    let res = supervisor.send_request("initialize", None, Duration::from_millis(100));
+    let res =
+        supervisor.send_request("initialize", None, Duration::from_millis(100));
     assert!(matches!(res, Err(AgentError::Timeout(_))));
 
     let _ = supervisor.shutdown(Duration::from_millis(500));
@@ -188,7 +192,8 @@ fn test_mock_agent_stderr_flood_is_bounded() {
         .with_arg("--scenario")
         .with_arg("stderr-flood");
 
-    let supervisor = Arc::new(ProcessSupervisor::spawn(options).expect("spawn supervisor"));
+    let supervisor =
+        Arc::new(ProcessSupervisor::spawn(options).expect("spawn supervisor"));
     let session = AgentSession::new(supervisor.clone());
 
     // Even with 1,000 stderr lines flooding, stdout requests must still succeed

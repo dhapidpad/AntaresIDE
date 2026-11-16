@@ -169,10 +169,7 @@ pub enum SessionEvent {
         arguments: Value,
     },
     /// Result from a tool call.
-    ToolResult {
-        id: String,
-        result: Value,
-    },
+    ToolResult { id: String, result: Value },
     /// Overall turn status update (e.g. "thinking", "executing").
     Status(String),
     /// Turn completed.
@@ -192,15 +189,36 @@ impl SessionUpdateParams {
             return SessionEvent::TextDelta(delta.to_string());
         }
 
-        if let Some(tool_call) = self.update.get("toolCall").and_then(Value::as_object) {
-            let id = tool_call.get("id").and_then(Value::as_str).unwrap_or("").to_string();
-            let name = tool_call.get("name").and_then(Value::as_str).unwrap_or("").to_string();
-            let arguments = tool_call.get("arguments").cloned().unwrap_or(Value::Null);
-            return SessionEvent::ToolCall { id, name, arguments };
+        if let Some(tool_call) =
+            self.update.get("toolCall").and_then(Value::as_object)
+        {
+            let id = tool_call
+                .get("id")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_string();
+            let name = tool_call
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_string();
+            let arguments =
+                tool_call.get("arguments").cloned().unwrap_or(Value::Null);
+            return SessionEvent::ToolCall {
+                id,
+                name,
+                arguments,
+            };
         }
 
-        if let Some(tool_result) = self.update.get("toolResult").and_then(Value::as_object) {
-            let id = tool_result.get("id").and_then(Value::as_str).unwrap_or("").to_string();
+        if let Some(tool_result) =
+            self.update.get("toolResult").and_then(Value::as_object)
+        {
+            let id = tool_result
+                .get("id")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_string();
             let result = tool_result.get("result").cloned().unwrap_or(Value::Null);
             return SessionEvent::ToolResult { id, result };
         }

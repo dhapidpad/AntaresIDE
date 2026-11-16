@@ -11,12 +11,15 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crossbeam_channel::{bounded, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender, bounded};
 use parking_lot::Mutex;
 use serde_json::Value;
 
 use crate::{
-    codec::{decode_line, encode_line, JsonRpcMessage, JsonRpcNotification, JsonRpcRequest, RequestId},
+    codec::{
+        JsonRpcMessage, JsonRpcNotification, JsonRpcRequest, RequestId, decode_line,
+        encode_line,
+    },
     error::AgentError,
     protocol::SessionUpdateParams,
 };
@@ -58,7 +61,11 @@ impl ProcessLaunchOptions {
         self
     }
 
-    pub fn with_env(mut self, key: impl Into<String>, val: impl Into<String>) -> Self {
+    pub fn with_env(
+        mut self,
+        key: impl Into<String>,
+        val: impl Into<String>,
+    ) -> Self {
         self.envs.insert(key.into(), val.into());
         self
     }
@@ -80,7 +87,8 @@ pub enum SupervisorEvent {
     ProcessExited { status: Option<i32> },
 }
 
-type PendingRequests = Arc<Mutex<HashMap<RequestId, Sender<Result<Value, AgentError>>>>>;
+type PendingRequests =
+    Arc<Mutex<HashMap<RequestId, Sender<Result<Value, AgentError>>>>>;
 type StderrBuffer = Arc<Mutex<VecDeque<String>>>;
 
 /// Low-level process supervisor managing child stdio and JSON-RPC message correlation.
@@ -119,28 +127,30 @@ impl ProcessSupervisor {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
-        let mut child = cmd
-            .spawn()
-            .map_err(|e| AgentError::ProcessSpawnFailed(format!("{}: {e}", options.binary.display())))?;
+        let mut child = cmd.spawn().map_err(|e| {
+            AgentError::ProcessSpawnFailed(format!(
+                "{}: {e}",
+                options.binary.display()
+            ))
+        })?;
 
-        let stdin = child
-            .stdin
-            .take()
-            .ok_or_else(|| AgentError::IoError("failed to capture child stdin".to_string()))?;
-        let stdout = child
-            .stdout
-            .take()
-            .ok_or_else(|| AgentError::IoError("failed to capture child stdout".to_string()))?;
-        let stderr = child
-            .stderr
-            .take()
-            .ok_or_else(|| AgentError::IoError("failed to capture child stderr".to_string()))?;
+        let stdin = child.stdin.take().ok_or_else(|| {
+            AgentError::IoError("failed to capture child stdin".to_string())
+        })?;
+        let stdout = child.stdout.take().ok_or_else(|| {
+            AgentError::IoError("failed to capture child stdout".to_string())
+        })?;
+        let stderr = child.stderr.take().ok_or_else(|| {
+            AgentError::IoError("failed to capture child stderr".to_string())
+        })?;
 
         let (writer_tx, writer_rx) = bounded::<String>(DEFAULT_CHANNEL_CAPACITY);
-        let (event_tx, event_rx) = bounded::<SupervisorEvent>(DEFAULT_CHANNEL_CAPACITY);
+        let (event_tx, event_rx) =
+            bounded::<SupervisorEvent>(DEFAULT_CHANNEL_CAPACITY);
 
         let pending_requests: PendingRequests = Arc::new(Mutex::new(HashMap::new()));
-        let stderr_buffer: StderrBuffer = Arc::new(Mutex::new(VecDeque::with_capacity(MAX_STDERR_LINES)));
+        let stderr_buffer: StderrBuffer =
+            Arc::new(Mutex::new(VecDeque::with_capacity(MAX_STDERR_LINES)));
         let is_running = Arc::new(AtomicBool::new(true));
 
         // Writer Thread
@@ -149,12 +159,18 @@ impl ProcessSupervisor {
             .spawn(move || {
                 let mut writer = stdin;
                 while let Ok(line) = writer_rx.recv() {
-                    if writer.write_all(line.as_bytes()).is_err() || writer.flush().is_err() {
+                    if writer.write_all(line.as_bytes()).is_err()
+                        || writer.flush().is_err()
+                    {
                         break;
                     }
                 }
             })
-            .map_err(|e| AgentError::ProcessSpawnFailed(format!("failed to spawn writer thread: {e}")))?;
+            .map_err(|e| {
+                AgentError::ProcessSpawnFailed(format!(
+                    "failed to spawn writer thread: {e}"
+                ))
+            })?;
 
         // Stdout Reader Thread
         let pending_clone = pending_requests.clone();
@@ -172,12 +188,16 @@ impl ProcessSupervisor {
 
                     match decode_line(&line) {
                         Ok(JsonRpcMessage::Success(res)) => {
-                            if let Some(sender) = pending_clone.lock().remove(&res.id) {
+                            if let Some(sender) =
+                                pending_clone.lock().remove(&res.id)
+                            {
                                 let _ = sender.send(Ok(res.result));
                             }
                         }
                         Ok(JsonRpcMessage::Error(err_res)) => {
-                            if let Some(sender) = pending_clone.lock().remove(&err_res.id) {
+                            if let Some(sender) =
+                                pending_clone.lock().remove(&err_res.id)
+                            {
                                 let _ = sender.send(Err(AgentError::RpcError {
                                     code: err_res.error.code,
                                     message: err_res.error.message,
@@ -188,20 +208,29 @@ impl ProcessSupervisor {
                         Ok(JsonRpcMessage::Notification(notif)) => {
                             if notif.method == "session/update" {
                                 if let Some(params_val) = notif.params {
-                                    if let Ok(params) = serde_json::from_value::<SessionUpdateParams>(params_val) {
-                                        let _ = event_tx_clone.send(SupervisorEvent::SessionUpdate(params));
+                                    if let Ok(params) = serde_json::from_value::<
+                                        SessionUpdateParams,
+                                    >(
+                                        params_val
+                                    ) {
+                                        let _ = event_tx_clone.send(
+                                            SupervisorEvent::SessionUpdate(params),
+                                        );
                                         continue;
                                     }
                                 }
                             }
-                            let _ = event_tx_clone.send(SupervisorEvent::Notification(notif));
+                            let _ = event_tx_clone
+                                .send(SupervisorEvent::Notification(notif));
                         }
                         Ok(JsonRpcMessage::Request(_)) => {
                             // Inbound requests from the server (e.g. MCP tool execution request)
                         }
                         Err(e) => {
                             // Ignore or log malformed lines without panicking or crashing reader
-                            tracing::warn!("ignoring malformed agent stdout line: {e}");
+                            tracing::warn!(
+                                "ignoring malformed agent stdout line: {e}"
+                            );
                         }
                     }
                 }
@@ -212,9 +241,14 @@ impl ProcessSupervisor {
                 for (_, sender) in pending.drain() {
                     let _ = sender.send(Err(AgentError::ProcessExited(None)));
                 }
-                let _ = event_tx_clone.send(SupervisorEvent::ProcessExited { status: None });
+                let _ = event_tx_clone
+                    .send(SupervisorEvent::ProcessExited { status: None });
             })
-            .map_err(|e| AgentError::ProcessSpawnFailed(format!("failed to spawn reader thread: {e}")))?;
+            .map_err(|e| {
+                AgentError::ProcessSpawnFailed(format!(
+                    "failed to spawn reader thread: {e}"
+                ))
+            })?;
 
         // Stderr Reader Thread
         let stderr_buf_clone = stderr_buffer.clone();
@@ -234,7 +268,11 @@ impl ProcessSupervisor {
                     buf.push_back(line);
                 }
             })
-            .map_err(|e| AgentError::ProcessSpawnFailed(format!("failed to spawn stderr thread: {e}")))?;
+            .map_err(|e| {
+                AgentError::ProcessSpawnFailed(format!(
+                    "failed to spawn stderr thread: {e}"
+                ))
+            })?;
 
         Ok(Self {
             child: Arc::new(Mutex::new(Some(child))),
@@ -266,7 +304,8 @@ impl ProcessSupervisor {
             return Err(AgentError::ProcessExited(self.exit_code()));
         }
 
-        let id = RequestId::Number(self.request_counter.fetch_add(1, Ordering::SeqCst));
+        let id =
+            RequestId::Number(self.request_counter.fetch_add(1, Ordering::SeqCst));
         let request = JsonRpcRequest::new(id.clone(), method, params);
         let encoded = encode_line(&request)?;
 
@@ -282,7 +321,9 @@ impl ProcessSupervisor {
             Ok(res) => res,
             Err(_) => {
                 self.pending_requests.lock().remove(&id);
-                Err(AgentError::Timeout(format!("request timed out after {timeout:?}")))
+                Err(AgentError::Timeout(format!(
+                    "request timed out after {timeout:?}"
+                )))
             }
         }
     }
@@ -310,10 +351,13 @@ impl ProcessSupervisor {
     }
 
     /// Receive an event with timeout.
-    pub fn recv_event_timeout(&self, timeout: Duration) -> Result<SupervisorEvent, AgentError> {
-        self.event_rx
-            .recv_timeout(timeout)
-            .map_err(|_| AgentError::Timeout("no event received in time".to_string()))
+    pub fn recv_event_timeout(
+        &self,
+        timeout: Duration,
+    ) -> Result<SupervisorEvent, AgentError> {
+        self.event_rx.recv_timeout(timeout).map_err(|_| {
+            AgentError::Timeout("no event received in time".to_string())
+        })
     }
 
     /// Retrieve the recent stderr diagnostic output lines.

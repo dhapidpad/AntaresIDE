@@ -25,7 +25,11 @@ pub struct JsonRpcRequest {
 }
 
 impl JsonRpcRequest {
-    pub fn new(id: RequestId, method: impl Into<String>, params: Option<Value>) -> Self {
+    pub fn new(
+        id: RequestId,
+        method: impl Into<String>,
+        params: Option<Value>,
+    ) -> Self {
         Self {
             jsonrpc: JSONRPC_VERSION.to_string(),
             id,
@@ -107,13 +111,16 @@ pub fn decode_line(line: &str) -> Result<JsonRpcMessage, AgentError> {
         .map_err(|e| AgentError::SerializationError(e.to_string()))?;
 
     let obj = val.as_object().ok_or_else(|| {
-        AgentError::ProtocolError("JSON-RPC message must be a JSON object".to_string())
+        AgentError::ProtocolError(
+            "JSON-RPC message must be a JSON object".to_string(),
+        )
     })?;
 
-    let version = obj
-        .get("jsonrpc")
-        .and_then(Value::as_str)
-        .ok_or_else(|| AgentError::ProtocolError("missing or non-string 'jsonrpc' field".to_string()))?;
+    let version = obj.get("jsonrpc").and_then(Value::as_str).ok_or_else(|| {
+        AgentError::ProtocolError(
+            "missing or non-string 'jsonrpc' field".to_string(),
+        )
+    })?;
 
     if version != JSONRPC_VERSION {
         return Err(AgentError::ProtocolError(format!(
@@ -193,7 +200,8 @@ mod tests {
 
     #[test]
     fn test_decode_success_response() {
-        let raw = r#"{"jsonrpc": "2.0", "id": 42, "result": {"sessionId": "s-123"}}"#;
+        let raw =
+            r#"{"jsonrpc": "2.0", "id": 42, "result": {"sessionId": "s-123"}}"#;
         let decoded = decode_line(raw).unwrap();
         match decoded {
             JsonRpcMessage::Success(res) => {
@@ -222,6 +230,8 @@ mod tests {
     fn test_decode_invalid_json() {
         assert!(decode_line("not json").is_err());
         assert!(decode_line(r#"{"missing": "jsonrpc"}"#).is_err());
-        assert!(decode_line(r#"{"jsonrpc": "1.0", "id": 1, "result": true}"#).is_err());
+        assert!(
+            decode_line(r#"{"jsonrpc": "1.0", "id": 1, "result": true}"#).is_err()
+        );
     }
 }
