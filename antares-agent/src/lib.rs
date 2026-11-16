@@ -56,12 +56,16 @@ mod tests {
             binary: Some(missing.clone()),
         };
 
-        assert_eq!(locate_binary(&config), Err(AgentError::InvalidBinaryPath(missing)));
+        assert_eq!(
+            locate_binary(&config),
+            Err(AgentError::InvalidBinaryPath(missing))
+        );
     }
 
     #[test]
     fn explicit_existing_file_is_returned() {
-        let file = std::env::current_exe().expect("test executable path should exist");
+        let file =
+            std::env::current_exe().expect("test executable path should exist");
         let config = SidecarConfig {
             binary: Some(file.clone()),
         };
