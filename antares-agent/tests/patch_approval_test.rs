@@ -12,8 +12,8 @@
 use std::fs;
 
 use antares_agent::{
-    CommandStatus, ContextBudget, ContextError, ContextService, McpBridge, McpToolError,
-    PatchError, PatchHunk, PatchPipeline,
+    CommandStatus, ContextBudget, ContextError, ContextService, McpBridge,
+    McpToolError, PatchError, PatchHunk, PatchPipeline,
 };
 use serde_json::json;
 use tempfile::tempdir;
@@ -155,7 +155,9 @@ fn test_patch_proposal_lifecycle_and_undo() {
     assert_eq!(proposal_res["status"], "Pending");
 
     // Attempting to apply before approval fails
-    let err = pipeline.apply_proposal(proposal_id, &service, 301).unwrap_err();
+    let err = pipeline
+        .apply_proposal(proposal_id, &service, 301)
+        .unwrap_err();
     assert!(matches!(err, PatchError::NotApproved(_)));
 
     // User approves
@@ -194,7 +196,14 @@ fn test_stale_base_revision_blocks_apply() {
     let hunk = PatchHunk::new(1, 1, 1, 1, "count = 1", "count = 2");
 
     let proposal = pipeline
-        .submit_proposal("p-stale", "counter.rs", base_hash, vec![hunk], "Increment", 400)
+        .submit_proposal(
+            "p-stale",
+            "counter.rs",
+            base_hash,
+            vec![hunk],
+            "Increment",
+            400,
+        )
         .unwrap();
 
     pipeline.approve_proposal("p-stale").unwrap();
@@ -203,7 +212,9 @@ fn test_stale_base_revision_blocks_apply() {
     fs::write(&file_path, "let count = 100; // modified by user\n").unwrap();
 
     // Applying must fail due to stale base hash
-    let err = pipeline.apply_proposal(&proposal.id, &service, 401).unwrap_err();
+    let err = pipeline
+        .apply_proposal(&proposal.id, &service, 401)
+        .unwrap_err();
     assert!(matches!(err, PatchError::StaleBaseRevision { .. }));
 
     // File on disk must remain untouched

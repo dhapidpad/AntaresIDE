@@ -8,7 +8,7 @@
 
 use std::fs;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::context::{ContextError, ContextService};
 use crate::patch::{PatchError, PatchHunk, PatchPipeline};
@@ -127,10 +127,10 @@ impl McpBridge {
     ) -> Result<Value, McpToolError> {
         match tool_name {
             "workspace_read_file" => {
-                let path = args
-                    .get("path")
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| McpToolError::InvalidArguments("Missing 'path'".to_string()))?;
+                let path =
+                    args.get("path").and_then(|v| v.as_str()).ok_or_else(|| {
+                        McpToolError::InvalidArguments("Missing 'path'".to_string())
+                    })?;
 
                 let file_ctx = context.read_file_context(path)?;
                 Ok(json!({
@@ -143,10 +143,8 @@ impl McpBridge {
             }
 
             "workspace_list_directory" => {
-                let rel_path = args
-                    .get("path")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("");
+                let rel_path =
+                    args.get("path").and_then(|v| v.as_str()).unwrap_or("");
 
                 let canonical = context.validate_path(rel_path)?;
                 if !canonical.is_dir() {
@@ -162,7 +160,8 @@ impl McpBridge {
 
                 for entry in dir_iter.flatten() {
                     let file_name = entry.file_name().to_string_lossy().to_string();
-                    let is_dir = entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false);
+                    let is_dir =
+                        entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false);
                     entries.push(json!({
                         "name": file_name,
                         "is_directory": is_dir,
@@ -176,16 +175,18 @@ impl McpBridge {
             }
 
             "workspace_propose_patch" => {
-                let path = args
-                    .get("path")
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| McpToolError::InvalidArguments("Missing 'path'".to_string()))?;
+                let path =
+                    args.get("path").and_then(|v| v.as_str()).ok_or_else(|| {
+                        McpToolError::InvalidArguments("Missing 'path'".to_string())
+                    })?;
 
                 let base_hash = args
                     .get("base_hash")
                     .and_then(|v| v.as_str())
                     .ok_or_else(|| {
-                        McpToolError::InvalidArguments("Missing 'base_hash'".to_string())
+                        McpToolError::InvalidArguments(
+                            "Missing 'base_hash'".to_string(),
+                        )
                     })?;
 
                 let summary = args
@@ -197,19 +198,25 @@ impl McpBridge {
                     .get("hunks")
                     .and_then(|v| v.as_array())
                     .ok_or_else(|| {
-                        McpToolError::InvalidArguments("Missing or invalid 'hunks'".to_string())
+                        McpToolError::InvalidArguments(
+                            "Missing or invalid 'hunks'".to_string(),
+                        )
                     })?;
 
                 let mut hunks = Vec::new();
                 for h in hunks_val {
                     let old_start =
-                        h.get("old_start").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+                        h.get("old_start").and_then(|v| v.as_u64()).unwrap_or(1)
+                            as usize;
                     let old_lines =
-                        h.get("old_lines").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+                        h.get("old_lines").and_then(|v| v.as_u64()).unwrap_or(1)
+                            as usize;
                     let new_start =
-                        h.get("new_start").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+                        h.get("new_start").and_then(|v| v.as_u64()).unwrap_or(1)
+                            as usize;
                     let new_lines =
-                        h.get("new_lines").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+                        h.get("new_lines").and_then(|v| v.as_u64()).unwrap_or(1)
+                            as usize;
                     let old_text = h
                         .get("old_text")
                         .and_then(|v| v.as_str())
@@ -222,7 +229,8 @@ impl McpBridge {
                         .to_string();
 
                     hunks.push(PatchHunk::new(
-                        old_start, old_lines, new_start, new_lines, old_text, new_text,
+                        old_start, old_lines, new_start, new_lines, old_text,
+                        new_text,
                     ));
                 }
 
@@ -247,12 +255,13 @@ impl McpBridge {
             }
 
             "workspace_request_command" => {
-                let cmd = args
-                    .get("command")
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        McpToolError::InvalidArguments("Missing 'command'".to_string())
-                    })?;
+                let cmd = args.get("command").and_then(|v| v.as_str()).ok_or_else(
+                    || {
+                        McpToolError::InvalidArguments(
+                            "Missing 'command'".to_string(),
+                        )
+                    },
+                )?;
 
                 let arg_list: Vec<String> = args
                     .get("args")
@@ -265,7 +274,8 @@ impl McpBridge {
                     .unwrap_or_default();
 
                 let cmd_id = format!("cmd-{}", now_ms);
-                let proposal = pipeline.submit_command(&cmd_id, cmd, arg_list, None, now_ms);
+                let proposal =
+                    pipeline.submit_command(&cmd_id, cmd, arg_list, None, now_ms);
 
                 Ok(json!({
                     "command_id": proposal.id,
@@ -275,12 +285,14 @@ impl McpBridge {
             }
 
             // Direct write/exec tools are blocked by default profile
-            "write_file" | "edit_file" | "modify_file" | "bash" | "exec" | "run_command" => {
-                Err(McpToolError::PermissionDenied(format!(
-                    "Direct mutation '{}' is disabled in Antares default profile. Submit a patch proposal via 'workspace_propose_patch' instead.",
-                    tool_name
-                )))
-            }
+            "write_file" | "edit_file" | "modify_file" | "bash" | "exec"
+            | "run_command" => Err(McpToolError::PermissionDenied(format!(
+                "Direct mutation '{}' is disabled in Antares default profile. Submit a patch proposal via 'workspace_propose_patch' instead.",
+                tool_name
+            ))),
+
+            other => Err(McpToolError::UnknownTool(other.to_string())),
+        }
 
             other => Err(McpToolError::UnknownTool(other.to_string())),
         }

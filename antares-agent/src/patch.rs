@@ -8,8 +8,8 @@
 //! - Applied patches are reversible (undo support).
 //! - Rejected proposals have zero workspace side effects.
 
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
@@ -196,13 +196,11 @@ impl PatchPipeline {
         let canonical_path = context.validate_path(&proposal.relative_path)?;
 
         if !canonical_path.exists() {
-            return Err(PatchError::FileNotFound(
-                proposal.relative_path.clone(),
-            ));
+            return Err(PatchError::FileNotFound(proposal.relative_path.clone()));
         }
 
-        let bytes = fs::read(&canonical_path)
-            .map_err(|e| PatchError::Io(e.to_string()))?;
+        let bytes =
+            fs::read(&canonical_path).map_err(|e| PatchError::Io(e.to_string()))?;
         let current_text = String::from_utf8_lossy(&bytes);
         let current_hash = Self::compute_hash(&current_text);
 
@@ -242,10 +240,12 @@ impl PatchPipeline {
             ProposalStatus::Applied { .. } => {
                 Err(PatchError::AlreadyApplied(proposal_id.to_string()))
             }
-            ProposalStatus::Rejected { reason } => Err(PatchError::ProposalRejected(
-                proposal_id.to_string(),
-                reason.clone().unwrap_or_default(),
-            )),
+            ProposalStatus::Rejected { reason } => {
+                Err(PatchError::ProposalRejected(
+                    proposal_id.to_string(),
+                    reason.clone().unwrap_or_default(),
+                ))
+            }
             ProposalStatus::Reverted { .. } => {
                 proposal.status = ProposalStatus::Approved;
                 Ok(())
@@ -292,8 +292,8 @@ impl PatchPipeline {
         // Revalidate base revision immediately prior to apply
         let canonical_path = self.validate_proposal(&proposal, context)?;
 
-        let current_bytes = fs::read(&canonical_path)
-            .map_err(|e| PatchError::Io(e.to_string()))?;
+        let current_bytes =
+            fs::read(&canonical_path).map_err(|e| PatchError::Io(e.to_string()))?;
         let current_text = String::from_utf8_lossy(&current_bytes).to_string();
 
         // Apply all hunks sequentially
@@ -309,9 +309,7 @@ impl PatchPipeline {
         }
 
         // Atomic write via temporary file
-        let parent_dir = canonical_path
-            .parent()
-            .unwrap_or_else(|| Path::new("."));
+        let parent_dir = canonical_path.parent().unwrap_or_else(|| Path::new("."));
         let temp_path = parent_dir.join(format!(
             ".{}.antares_tmp",
             canonical_path
@@ -320,8 +318,9 @@ impl PatchPipeline {
                 .unwrap_or("patch")
         ));
 
-        fs::write(&temp_path, &new_text)
-            .map_err(|e| PatchError::Io(format!("Failed to write temp patch: {}", e)))?;
+        fs::write(&temp_path, &new_text).map_err(|e| {
+            PatchError::Io(format!("Failed to write temp patch: {}", e))
+        })?;
 
         if let Err(e) = fs::rename(&temp_path, &canonical_path) {
             let _ = fs::remove_file(&temp_path);
@@ -357,8 +356,8 @@ impl PatchPipeline {
     ) -> Result<(), PatchError> {
         let canonical_path = context.validate_path(&result.relative_path)?;
 
-        let current_bytes = fs::read(&canonical_path)
-            .map_err(|e| PatchError::Io(e.to_string()))?;
+        let current_bytes =
+            fs::read(&canonical_path).map_err(|e| PatchError::Io(e.to_string()))?;
         let current_text = String::from_utf8_lossy(&current_bytes);
         let current_hash = Self::compute_hash(&current_text);
 
@@ -370,9 +369,7 @@ impl PatchPipeline {
         }
 
         // Revert atomically
-        let parent_dir = canonical_path
-            .parent()
-            .unwrap_or_else(|| Path::new("."));
+        let parent_dir = canonical_path.parent().unwrap_or_else(|| Path::new("."));
         let temp_path = parent_dir.join(format!(
             ".{}.antares_revert_tmp",
             canonical_path
@@ -381,12 +378,16 @@ impl PatchPipeline {
                 .unwrap_or("revert")
         ));
 
-        fs::write(&temp_path, &result.previous_content)
-            .map_err(|e| PatchError::Io(format!("Failed to write revert file: {}", e)))?;
+        fs::write(&temp_path, &result.previous_content).map_err(|e| {
+            PatchError::Io(format!("Failed to write revert file: {}", e))
+        })?;
 
         if let Err(e) = fs::rename(&temp_path, &canonical_path) {
             let _ = fs::remove_file(&temp_path);
-            return Err(PatchError::Io(format!("Failed to atomic rename on revert: {}", e)));
+            return Err(PatchError::Io(format!(
+                "Failed to atomic rename on revert: {}",
+                e
+            )));
         }
 
         if let Some(prop) = self.proposals.get_mut(&result.proposal_id) {
@@ -431,7 +432,11 @@ impl PatchPipeline {
     }
 
     /// User action: Reject a command request.
-    pub fn reject_command(&mut self, id: &str, reason: Option<String>) -> Result<(), PatchError> {
+    pub fn reject_command(
+        &mut self,
+        id: &str,
+        reason: Option<String>,
+    ) -> Result<(), PatchError> {
         let cmd = self
             .commands
             .get_mut(id)
@@ -498,7 +503,9 @@ mod tests {
         assert_eq!(proposal.status, ProposalStatus::Pending);
 
         // Cannot apply while Pending
-        let err = pipeline.apply_proposal("prop-1", &context, 101).unwrap_err();
+        let err = pipeline
+            .apply_proposal("prop-1", &context, 101)
+            .unwrap_err();
         assert!(matches!(err, PatchError::NotApproved(_)));
 
         // User approves proposal
@@ -562,7 +569,13 @@ mod tests {
     #[test]
     fn test_command_approval_workflow() {
         let mut pipeline = PatchPipeline::new();
-        let cmd = pipeline.submit_command("cmd-1", "cargo", vec!["test".into()], None, 300);
+        let cmd = pipeline.submit_command(
+            "cmd-1",
+            "cargo",
+            vec!["test".into()],
+            None,
+            300,
+        );
         assert_eq!(cmd.status, CommandStatus::PendingApproval);
 
         // Reject command

@@ -22,8 +22,8 @@ pub use context::{
 pub use error::AgentError;
 pub use mcp::{McpBridge, McpToolError};
 pub use patch::{
-    CommandProposal, CommandStatus, PatchError, PatchHunk, PatchPipeline, PatchProposal,
-    PatchResult, ProposalStatus,
+    CommandProposal, CommandStatus, PatchError, PatchHunk, PatchPipeline,
+    PatchProposal, PatchResult, ProposalStatus,
 };
 pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
 pub use session::{AgentSession, SessionState};
