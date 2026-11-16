@@ -9,9 +9,11 @@ pub mod context;
 pub mod error;
 pub mod mcp;
 pub mod metrics;
+pub mod onboarding;
 pub mod patch;
 pub mod persistence;
 pub mod protocol;
+pub mod release;
 pub mod session;
 pub mod supervisor;
 pub mod ui_state;
@@ -31,12 +33,16 @@ pub use mcp::{McpBridge, McpToolError};
 pub use metrics::{
     BudgetViolation, LatencyStats, PerformanceBudgets, PerformanceMetrics,
 };
+pub use onboarding::{
+    FirstRunStatus, OnboardingConfig, OnboardingError, OnboardingService,
+};
 pub use patch::{
     CommandProposal, CommandStatus, PatchError, PatchHunk, PatchPipeline,
     PatchProposal, PatchResult, ProposalStatus,
 };
 pub use persistence::{PersistenceError, PersistentSession, SessionStorage};
 pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
+pub use release::{PlatformTarget, ReleaseMetadata};
 pub use session::{AgentSession, SessionState};
 pub use supervisor::{ProcessLaunchOptions, ProcessSupervisor, SupervisorEvent};
 pub use ui_state::{
