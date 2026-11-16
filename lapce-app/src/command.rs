@@ -556,7 +556,7 @@ pub enum LapceWorkbenchCommand {
     RestartToUpdate,
 
     #[strum(serialize = "show_about")]
-    #[strum(message = "About Lapce")]
+    #[strum(message = "About Antares IDE")]
     ShowAbout,
 
     #[strum(message = "Save All Files")]

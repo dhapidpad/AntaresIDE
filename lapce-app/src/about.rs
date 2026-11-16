@@ -22,7 +22,7 @@ struct AboutUri {}
 
 impl AboutUri {
     const LAPCE: &'static str = "https://lapce.dev";
-    const GITHUB: &'static str = "https://github.com/lapce/lapce";
+    const GITHUB: &'static str = "https://github.com/dhapidpad/AntaresIDE";
     const MATRIX: &'static str = "https://matrix.to/#/#lapce-editor:matrix.org";
     const DISCORD: &'static str = "https://discord.gg/n8tGJ6Rn6D";
     const CODICONS: &'static str = "https://github.com/microsoft/vscode-codicons";
@@ -105,7 +105,7 @@ pub fn about_popup(window_tab_data: Rc<WindowTabData>) -> impl View {
                 s.size(logo_size, logo_size)
                     .color(config.get().color(LapceColor::EDITOR_FOREGROUND))
             }),
-            label(|| "Lapce".to_string()).style(move |s| {
+            label(|| "Antares IDE".to_string()).style(move |s| {
                 s.font_bold()
                     .margin_top(10.0)
                     .color(config.get().color(LapceColor::EDITOR_FOREGROUND))

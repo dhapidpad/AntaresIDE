@@ -2,10 +2,10 @@
 Version=1.0
 Type=Application
 
-Name=Lapce
-Comment=Lightning-fast and powerful code editor written in Rust
+Name=Antares IDE
+Comment=Lightning-fast and powerful code editor in Rust with Octomind ACP AI agent
 Categories=Development;IDE;
-GenericName=Code Editor
+GenericName=AI Code Editor
 StartupWMClass=lapce
 
 Icon=dev.lapce.lapce

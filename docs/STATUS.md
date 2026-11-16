@@ -1,32 +1,34 @@
 # Antares implementation status
 
-- **Phase:** P4 completed — MCP bridge, controlled changes, atomic patch application with undo, and command approvals verified green in CI.
-- **Done in this phase (Phase 4):**
-  - Host-Owned `antares-workspace` MCP Tool Bridge (`antares-agent/src/mcp.rs`):
-    - `workspace_read_file`: reads file with path traversal/containment validation, secret filtering, secret redaction, and budgeting.
-    - `workspace_list_directory`: lists directories strictly bounded inside active workspace.
-    - `workspace_propose_patch`: submits structured patch proposal for user review prior to apply.
-    - `workspace_request_command`: submits command request for explicit user confirmation.
-    - Fails closed on direct write/exec attempts (`write_file`, `bash`, `exec`, etc.) with `PermissionDenied`.
-  - Patch Proposal & Approval Engine (`antares-agent/src/patch.rs`):
-    - Structured patch model (`PatchProposal`, `PatchHunk`, `ProposalStatus`).
-    - Cryptographic base revision hashing (`compute_hash`) and stale revision rejection (`StaleBaseRevision`).
-    - Atomic disk writes via temporary sibling files and atomic renames.
-    - Full undo support (`revert_patch`) restoring exact pre-patch byte contents.
-    - Command proposal lifecycle (`CommandProposal`, `CommandStatus::PendingApproval`).
-  - Integration Test Suite (`antares-agent/tests/patch_approval_test.rs`):
-    - Rejection of direct agent writes and commands.
-    - Path security, secret blocking, and secret redaction enforcement during tool calls.
-    - Full proposal approval and undo cycle.
-    - Stale base revision detection preventing corrupted applies.
-    - Command proposal approval lifecycle.
-  - CI Verification: GitHub Actions [Run 43902459163](https://github.com/dhapidpad/AntaresIDE/actions/runs/43902459163) — **ALL 38 TESTS PASSED** (unit tests + contract tests + reducer tests + security tests + patch approval integration tests), `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
+- **Phase:** P5 completed — Agent capabilities, multi-turn session persistence, specialist role catalog, token budget tracking, and background tasks verified green in CI.
+- **Done in this phase (Phase 5):**
+  - Multi-Turn Session Persistence (`antares-agent/src/persistence.rs`):
+    - `PersistentSession`: complete transcript archive capturing messages, tool activities, streaming states, timestamps, active role, and model identifiers.
+    - `SessionStorage`: atomic disk operations with temporary files and atomic rename to prevent corruption under `.antares/sessions/`.
+    - Session management: load by ID, list stored sessions, and delete session.
+  - Specialist Role Catalog & Capabilities (`antares-agent/src/capabilities.rs`):
+    - `AgentRole`: profile configuration specifying ID, display name, description, system prompt prefix, and allowed tools whitelist.
+    - Built-in specialist roles: `coder` (full development & patch proposal), `reviewer` (strictly read-only security audit), and `architect` (high-level design and patch proposals).
+    - `ProviderConfig`: multi-provider runtime configuration (`Octomind`, `Gemini`, `Anthropic`, `OpenAI`, `Custom`).
+    - `TokenTracker`: per-session token accounting, financial cost estimation, and threshold budget alerting.
+    - `TaskManager`: background task supervisor tracking task lifecycle (`Queued`, `Running`, `Completed`, `Failed`, `Cancelled`), progress percentage, and timestamps.
+  - Antares Branding Synchronization:
+    - Updated window title to `{workspace} - Antares IDE` (`lapce-app/src/app.rs`).
+    - Updated about menu items to `About Antares IDE` (`lapce-app/src/app.rs`, `lapce-app/src/title.rs`, `lapce-app/src/command.rs`).
+    - Updated about popup to `Antares IDE` with link to `https://github.com/dhapidpad/AntaresIDE` (`lapce-app/src/about.rs`).
+    - Updated Linux desktop metadata to `Antares IDE` (`extra/linux/dev.lapce.lapce.desktop`).
+  - Integration Test Suite (`antares-agent/tests/capabilities_test.rs`):
+    - Multi-turn session persistence, atomic write, load, and deletion.
+    - Specialist role capability bounds and tool permission enforcement.
+    - Provider configuration and token budget tracking threshold breaches.
+    - Background task lifecycle progression and cancellation.
+  - CI Verification: GitHub Actions [Run 43903967729](https://github.com/dhapidpad/AntaresIDE/actions/runs/43903967729) — **ALL 42 TESTS PASSED**, `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
 - **Done in previous phases:**
   - Phase 0: Fork bootstrap, Antares overlay integration, workspace setup, green CI ([Run 43890242012](https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012)).
   - Phase 1: Octomind ACP supervisor, stdio isolation, bounded stderr ring-buffer, AgentSession state machine, contract test suite ([Run 43894324584](https://github.com/dhapidpad/AntaresIDE/actions/runs/43894324584)).
   - Phase 2: Native Floem AI panel, pure headless domain state machine & reducer, session bridge, and 24/24 tests verified green in CI ([Run 43897881034](https://github.com/dhapidpad/AntaresIDE/actions/runs/43897881034)).
   - Phase 3: Editor context, path validation & workspace containment, secret redaction, and resource budgeting ([Run 43900622891](https://github.com/dhapidpad/AntaresIDE/actions/runs/43900622891)).
-- **Not done:** Multi-turn session persistence & agent capabilities (P5); UI & performance hardening (P6); Antares branding and desktop packaging (P7); reliability & public release readiness (P8).
-- **Next:** Phase 5 — Agent Capabilities (multi-turn session persistence, specialist role picker, provider configuration, budget and token usage tracking).
-- **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is executed and confirmed via GitHub Actions CI and GitHub Codespaces.
+  - Phase 4: Host-owned MCP bridge, patch proposals with cryptographic hashing, atomic apply with undo, command approvals ([Run 43902459163](https://github.com/dhapidpad/AntaresIDE/actions/runs/43902459163)).
+- **Not done:** UI & performance hardening (P6); desktop packaging (P7); reliability & public release readiness (P8).
+- **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is executed and confirmed via GitHub Actions CI.
 - **Assumptions:** Lapce upstream master as pinned; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned; ACP over stdio is the primary transport; Gemini 3.8 Flash is the Antigravity coding model.

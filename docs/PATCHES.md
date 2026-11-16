@@ -14,3 +14,8 @@ The Antares IDE integration keeps modifications to upstream Lapce files isolated
 | `lapce-app/src/panel/data.rs` | Add `PanelKind::Antares` to `default_panel_order` | Show Antares panel in `RightTop` position by default | Insert into `RightTop` panel vector | Applied |
 | `lapce-app/src/panel/view.rs` | Add `PanelKind::Antares` view dispatch and tooltip | Render `antares_panel` when selected in panel picker | Add match arms in `panel_view` and `panel_picker` | Applied |
 | `lapce-app/src/window_tab.rs` | Add `antares_data` field and `PanelKind::Antares` focus check | Wire reactive panel data into window tab lifecycle | Add field to `WindowTabData` and constructor | Applied |
+| `lapce-app/src/app.rs` | Update window title and menu labels to Antares IDE | Synchronize user-facing application identity | Replace "Lapce" with "Antares IDE" in title and menu | Applied |
+| `lapce-app/src/title.rs` | Update About menu item to "About Antares IDE" | Present cohesive Antares branding in window title bar | Update string in menu item | Applied |
+| `lapce-app/src/command.rs` | Update ShowAbout command description | Display "About Antares IDE" in command palette | Update strum message | Applied |
+| `lapce-app/src/about.rs` | Update About popup branding and GitHub link | Point to Antares repo and show Antares IDE title | Update label and const GITHUB | Applied |
+| `extra/linux/dev.lapce.lapce.desktop` | Update desktop metadata name to Antares IDE | Linux desktop integration branding | Update Name and GenericName | Applied |
