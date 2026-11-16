@@ -1,14 +1,21 @@
 # Antares implementation status
 
-- **Phase:** P0 completed — live fork bootstrapped, Antares overlay integrated, and CI verified green.
-- **Done in this phase:** 
+- **Phase:** P1 completed — Octomind ACP child process supervisor, JSON-RPC 2.0 framing, session manager, and mock contract test suite verified green in CI.
+- **Done in this phase (Phase 1):**
+  - Designed and implemented `antares-agent` crate adhering to ACP 2024-11-05 specification.
+  - Single-line JSON-RPC 2.0 framing codec with strict validation (`antares-agent/src/codec.rs`).
+  - Protocol request and notification models (`initialize`, `session/new`, `session/load`, `session/prompt`, `session/cancel`, `session/update`) with streaming content blocks (`antares-agent/src/protocol.rs`).
+  - `ProcessSupervisor` (`antares-agent/src/supervisor.rs`): child process management, isolated stdin writer thread, stdout JSON-RPC dispatch loop, independent stderr reader thread with bounded ring buffer (`MAX_STDERR_LINES = 500`) to prevent deadlocks and memory exhaustion.
+  - `AgentSession` state machine (`antares-agent/src/session.rs`): high-level thread-safe API for session lifecycle, event subscription, cancellation, and graceful teardown.
+  - Comprehensive contract test suite (`tests/acp_contract_test.rs`) using headless Python mock agent (`fake_agent.py`) and recorded ACP frames (`session_flow.jsonl`).
+  - Validated 12/12 tests passing, clean formatting, and 0 clippy warnings under Rust 1.98.0 (Edition 2024) on GitHub Actions CI ([Run 43894324584](https://github.com/dhapidpad/AntaresIDE/actions/runs/43894324584)).
+- **Done in previous phase (Phase 0):**
   - Live fork created: `https://github.com/dhapidpad/AntaresIDE` from `lapce/lapce`.
   - Working branch initialized: `agy/antares-bootstrap`.
   - Antares overlay applied cleanly without breaking upstream Lapce files.
   - Root `Cargo.toml` workspace members updated with `antares-agent`.
-  - First Antares crate `antares-agent` compiled, formatted, tested, and linted under Rust 1.98.0.
-  - First GitHub Actions CI run passed: https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012.
-- **Not done:** Octomind ACP child process integration (P1); native Floem AI panel (P2); workspace context / MCP bridge (P3/P4); diff approval pipeline (P4); desktop release (P7).
-- **Next:** Phase 1 — Octomind installation and ACP process (pinned Octomind 0.72.0 verification, headless child process supervisor, JSON-RPC stdio transport, mock contract tests).
-- **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is reliably executed via GitHub Actions CI and GitHub Codespaces devcontainer.
+  - CI verification green ([Run 43890242012](https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012)).
+- **Not done:** Native Floem AI panel & session UI basics (P2); workspace context gathering & MCP bridge (P3); diff view & apply pipeline (P4); multi-turn session persistence & rollback (P5); performance & crash recovery hardening (P6); desktop packaging & release (P7).
+- **Next:** Phase 2 — AI Panel & Session Basics (native Floem agent panel in `lapce-app/src/antares/`, chat history scroll view, input editor with prompt dispatch, cancel button, session indicator, and event dispatch bridge).
+- **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is executed and confirmed via GitHub Actions CI and GitHub Codespaces.
 - **Assumptions:** Lapce upstream master as pinned; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned; ACP over stdio is the primary transport; Gemini 3.8 Flash is the Antigravity coding model.
