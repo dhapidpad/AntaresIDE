@@ -25,6 +25,7 @@ pub enum SessionState {
 }
 
 /// High-level session manager orchestrating ACP turns with the child process.
+#[derive(Clone)]
 pub struct AgentSession {
     supervisor: Arc<ProcessSupervisor>,
     current_session_id: Arc<Mutex<Option<String>>>,

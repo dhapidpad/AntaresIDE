@@ -91,14 +91,12 @@ fn test_mock_agent_happy_path_session_flow() {
     assert_eq!(sess_res.state.as_deref(), Some("ready"));
 
     // 3. Prompt turn
-    let prompt_handle = std::thread::spawn({
-        let session = AgentSession::new(supervisor.clone());
-        move || {
-            session.prompt(
-                vec![ContentBlock::text("test prompt")],
-                Duration::from_secs(3),
-            )
-        }
+    let prompt_session = session.clone();
+    let prompt_handle = std::thread::spawn(move || {
+        prompt_session.prompt(
+            vec![ContentBlock::text("test prompt")],
+            Duration::from_secs(3),
+        )
     });
 
     // 4. Consume streamed token events
