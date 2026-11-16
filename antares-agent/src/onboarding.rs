@@ -75,28 +75,35 @@ impl OnboardingService {
             return Ok(OnboardingConfig::default());
         }
 
-        let bytes = fs::read(&self.config_path)
-            .map_err(|e| OnboardingError::Io(format!("Failed to read config: {}", e)))?;
+        let bytes = fs::read(&self.config_path).map_err(|e| {
+            OnboardingError::Io(format!("Failed to read config: {}", e))
+        })?;
         serde_json::from_slice(&bytes)
             .map_err(|e| OnboardingError::Serialization(e.to_string()))
     }
 
     /// Save onboarding configuration atomically to disk.
-    pub fn save_config(&self, config: &OnboardingConfig) -> Result<(), OnboardingError> {
+    pub fn save_config(
+        &self,
+        config: &OnboardingConfig,
+    ) -> Result<(), OnboardingError> {
         if let Some(parent) = self.config_path.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|e| OnboardingError::Io(format!("Failed to create parent dir: {}", e)))?;
+            fs::create_dir_all(parent).map_err(|e| {
+                OnboardingError::Io(format!("Failed to create parent dir: {}", e))
+            })?;
         }
 
         let temp_path = self.config_path.with_extension("tmp");
         let json = serde_json::to_string_pretty(config)
             .map_err(|e| OnboardingError::Serialization(e.to_string()))?;
 
-        fs::write(&temp_path, json)
-            .map_err(|e| OnboardingError::Io(format!("Failed to write temp config: {}", e)))?;
+        fs::write(&temp_path, json).map_err(|e| {
+            OnboardingError::Io(format!("Failed to write temp config: {}", e))
+        })?;
 
-        fs::rename(&temp_path, &self.config_path)
-            .map_err(|e| OnboardingError::Io(format!("Failed to rename config: {}", e)))?;
+        fs::rename(&temp_path, &self.config_path).map_err(|e| {
+            OnboardingError::Io(format!("Failed to rename config: {}", e))
+        })?;
 
         Ok(())
     }
@@ -155,8 +162,9 @@ impl OnboardingService {
     /// Reset onboarding state back to initial first-run defaults.
     pub fn reset_setup(&self) -> Result<(), OnboardingError> {
         if self.config_path.exists() {
-            fs::remove_file(&self.config_path)
-                .map_err(|e| OnboardingError::Io(format!("Failed to delete config: {}", e)))?;
+            fs::remove_file(&self.config_path).map_err(|e| {
+                OnboardingError::Io(format!("Failed to delete config: {}", e))
+            })?;
         }
         Ok(())
     }

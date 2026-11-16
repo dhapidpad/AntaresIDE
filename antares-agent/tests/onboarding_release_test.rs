@@ -4,7 +4,8 @@
 use std::fs;
 
 use antares_agent::{
-    FirstRunStatus, OnboardingService, PlatformTarget, ReleaseMetadata, SidecarConfig,
+    FirstRunStatus, OnboardingService, PlatformTarget, ReleaseMetadata,
+    SidecarConfig,
 };
 use tempfile::tempdir;
 

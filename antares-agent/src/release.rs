@@ -78,9 +78,11 @@ impl Default for ReleaseMetadata {
             app_id: "dev.antares.antares".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
             platform: PlatformTarget::current(),
-            updater_url: "https://api.github.com/repos/dhapidpad/AntaresIDE/releases/latest"
+            updater_url:
+                "https://api.github.com/repos/dhapidpad/AntaresIDE/releases/latest"
+                    .to_string(),
+            releases_url: "https://github.com/dhapidpad/AntaresIDE/releases"
                 .to_string(),
-            releases_url: "https://github.com/dhapidpad/AntaresIDE/releases".to_string(),
             repo_url: "https://github.com/dhapidpad/AntaresIDE".to_string(),
             licenses_url: concat!(
                 "https://raw.githubusercontent.com/dhapidpad/AntaresIDE/",
