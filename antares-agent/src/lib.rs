@@ -4,6 +4,7 @@
 //! session lifecycle, and contract fixtures for the Octomind 0.72.0 ACP integration.
 
 pub mod codec;
+pub mod context;
 pub mod error;
 pub mod protocol;
 pub mod session;
@@ -12,6 +13,10 @@ pub mod ui_state;
 
 use std::path::PathBuf;
 
+pub use context::{
+    redact_secrets, ContextBudget, ContextError, ContextService, ContextSnapshot,
+    DiagnosticItem, DiagnosticSeverity, EditorRange, FileContext, SelectionContext,
+};
 pub use error::AgentError;
 pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
 pub use session::{AgentSession, SessionState};
