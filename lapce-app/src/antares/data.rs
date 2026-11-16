@@ -75,6 +75,21 @@ impl AntaresPanelData {
         self.dispatch(PanelAction::ClearTranscript);
     }
 
+    /// Navigate to previous sent prompt in draft history.
+    pub fn navigate_history_prev(&self) {
+        self.dispatch(PanelAction::NavigateHistoryPrev);
+    }
+
+    /// Navigate to next sent prompt in draft history.
+    pub fn navigate_history_next(&self) {
+        self.dispatch(PanelAction::NavigateHistoryNext);
+    }
+
+    /// Trim transcript messages to bounded recent items to avoid UI lag.
+    pub fn trim_transcript(&self, max_messages: usize) {
+        self.dispatch(PanelAction::TrimTranscript { max_messages });
+    }
+
     /// Clean up session and cancel stale work upon workspace switch.
     pub fn switch_workspace(&self) {
         self.dispatch(PanelAction::SwitchWorkspace);

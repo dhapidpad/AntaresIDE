@@ -93,6 +93,34 @@ pub fn antares_panel(
             .border_color(config.get().color(LapceColor::LAPCE_BORDER))
     });
 
+    // Empty state suggestion view
+    let empty_state = container(
+        stack((
+            label(|| "Antares AI Agent".to_string()).style(move |s| {
+                s.font_bold()
+                    .font_size(14.0)
+                    .color(config.get().color(LapceColor::PANEL_FOREGROUND))
+            }),
+            label(|| {
+                "Ask a question, propose edits, or audit security.".to_string()
+            })
+            .style(move |s| {
+                s.font_size(12.0)
+                    .margin_top(6.0)
+                    .color(config.get().color(LapceColor::PANEL_FOREGROUND_DIM))
+            }),
+        ))
+        .style(|s| s.flex_col().items_center().padding(24.0)),
+    )
+    .style(move |s| {
+        let is_empty = state.with(|s| s.messages.is_empty());
+        s.width_full()
+            .items_center()
+            .justify_center()
+            .flex_grow(1.0f32)
+            .apply_if(!is_empty, |s| s.hide())
+    });
+
     // Transcript message list
     let transcript = scroll(
         dyn_stack(
@@ -183,7 +211,12 @@ pub fn antares_panel(
         )
         .style(|s| s.flex_col().width_full().padding(8.0)),
     )
-    .style(|s| s.flex_grow(1.0f32).width_full());
+    .style(move |s| {
+        let is_empty = state.with(|s| s.messages.is_empty());
+        s.flex_grow(1.0f32)
+            .width_full()
+            .apply_if(is_empty, |s| s.hide())
+    });
 
     // Error or Auth Alert Banner
     let banner = container(
@@ -284,7 +317,7 @@ pub fn antares_panel(
     });
 
     // Root Panel Layout
-    stack((header, transcript, banner, composer)).style(move |s| {
+    stack((header, empty_state, transcript, banner, composer)).style(move |s| {
         s.size_full()
             .flex_col()
             .background(config.get().color(LapceColor::PANEL_BACKGROUND))

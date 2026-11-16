@@ -8,6 +8,7 @@ pub mod codec;
 pub mod context;
 pub mod error;
 pub mod mcp;
+pub mod metrics;
 pub mod patch;
 pub mod persistence;
 pub mod protocol;
@@ -27,6 +28,7 @@ pub use context::{
 };
 pub use error::AgentError;
 pub use mcp::{McpBridge, McpToolError};
+pub use metrics::{BudgetViolation, LatencyStats, PerformanceBudgets, PerformanceMetrics};
 pub use patch::{
     CommandProposal, CommandStatus, PatchError, PatchHunk, PatchPipeline,
     PatchProposal, PatchResult, ProposalStatus,
@@ -36,8 +38,8 @@ pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
 pub use session::{AgentSession, SessionState};
 pub use supervisor::{ProcessLaunchOptions, ProcessSupervisor, SupervisorEvent};
 pub use ui_state::{
-    ChatMessage, ChatRole, PanelAction, PanelLifecycle, PanelSideEffect, PanelState,
-    SessionSummary, ToolActivity, ToolStatus,
+    ChatMessage, ChatRole, FocusTarget, PanelAction, PanelLifecycle,
+    PanelSideEffect, PanelState, SessionSummary, ToolActivity, ToolStatus,
 };
 
 /// Process configuration owned by Antares.

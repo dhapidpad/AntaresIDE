@@ -75,6 +75,15 @@ pub struct SessionSummary {
     pub updated_at_ms: u64,
 }
 
+/// Navigable focus targets within the Antares AI panel.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FocusTarget {
+    Composer,
+    Transcript,
+    SessionList,
+    ToolDetails,
+}
+
 /// Complete domain state of the Antares AI panel.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PanelState {
@@ -85,6 +94,10 @@ pub struct PanelState {
     pub input_draft: String,
     pub agent_name: Option<String>,
     pub status_message: Option<String>,
+    pub focus_target: FocusTarget,
+    pub draft_history: Vec<String>,
+    pub history_cursor: Option<usize>,
+    pub temporary_draft: Option<String>,
 }
 
 impl Default for PanelState {
@@ -97,6 +110,10 @@ impl Default for PanelState {
             input_draft: String::new(),
             agent_name: None,
             status_message: Some("Idle".to_string()),
+            focus_target: FocusTarget::Composer,
+            draft_history: Vec::new(),
+            history_cursor: None,
+            temporary_draft: None,
         }
     }
 }
@@ -148,6 +165,14 @@ pub enum PanelAction {
     SwitchWorkspace,
     /// Clear transcript messages for the current view.
     ClearTranscript,
+    /// Navigate to previous entry in prompt draft history.
+    NavigateHistoryPrev,
+    /// Navigate to next entry in prompt draft history.
+    NavigateHistoryNext,
+    /// Set explicit keyboard focus target.
+    SetFocusTarget(FocusTarget),
+    /// Trim display transcript to bounded recent messages to prevent rendering lag.
+    TrimTranscript { max_messages: usize },
 }
 
 impl PanelAction {
@@ -325,6 +350,12 @@ impl PanelState {
                         timestamp_ms: 0,
                     });
 
+                    if !prompt_text.trim().is_empty() {
+                        self.draft_history.push(prompt_text.clone());
+                    }
+                    self.history_cursor = None;
+                    self.temporary_draft = None;
+
                     // Append streaming assistant message placeholder
                     self.messages.push(ChatMessage {
                         id: format!("msg-asst-{}", self.messages.len()),
@@ -458,6 +489,47 @@ impl PanelState {
             }
             PanelAction::ClearTranscript => {
                 self.messages.clear();
+            }
+            PanelAction::NavigateHistoryPrev => {
+                if !self.draft_history.is_empty() {
+                    match self.history_cursor {
+                        None => {
+                            self.temporary_draft = Some(self.input_draft.clone());
+                            let last_idx = self.draft_history.len() - 1;
+                            self.history_cursor = Some(last_idx);
+                            self.input_draft = self.draft_history[last_idx].clone();
+                        }
+                        Some(idx) => {
+                            if idx > 0 {
+                                let new_idx = idx - 1;
+                                self.history_cursor = Some(new_idx);
+                                self.input_draft = self.draft_history[new_idx].clone();
+                            }
+                        }
+                    }
+                }
+            }
+            PanelAction::NavigateHistoryNext => {
+                if let Some(idx) = self.history_cursor {
+                    if idx + 1 < self.draft_history.len() {
+                        let new_idx = idx + 1;
+                        self.history_cursor = Some(new_idx);
+                        self.input_draft = self.draft_history[new_idx].clone();
+                    } else {
+                        self.history_cursor = None;
+                        self.input_draft =
+                            self.temporary_draft.take().unwrap_or_default();
+                    }
+                }
+            }
+            PanelAction::SetFocusTarget(target) => {
+                self.focus_target = target;
+            }
+            PanelAction::TrimTranscript { max_messages } => {
+                if self.messages.len() > max_messages {
+                    let drain_count = self.messages.len() - max_messages;
+                    self.messages.drain(0..drain_count);
+                }
             }
         }
 
