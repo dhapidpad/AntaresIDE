@@ -201,8 +201,13 @@ impl ContextService {
         })
     }
 
-    /// Canonical root path of the workspace.
+    /// Raw workspace root path.
     pub fn workspace_root(&self) -> &Path {
+        &self.workspace_root
+    }
+
+    /// Canonical root path of the workspace.
+    pub fn canonical_root(&self) -> &Path {
         &self.canonical_root
     }
 
