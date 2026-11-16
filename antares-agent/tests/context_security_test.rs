@@ -12,10 +12,7 @@
 use std::fs;
 use tempfile::tempdir;
 
-use antares_agent::{
-    ContextBudget, ContextError, ContextService, DiagnosticItem, DiagnosticSeverity,
-    EditorRange, SelectionContext,
-};
+use antares_agent::{ContextBudget, ContextError, ContextService};
 
 #[test]
 fn test_valid_workspace_file_accepted() {

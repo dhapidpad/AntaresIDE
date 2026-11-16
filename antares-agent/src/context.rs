@@ -312,9 +312,17 @@ impl ContextService {
         }
 
         let mut content = lines.join("\n");
+        let marker = "\n... [TRUNCATED: remaining content exceeded budget]";
         if content.len() > self.budget.max_file_bytes {
-            content.truncate(self.budget.max_file_bytes);
-            content.push_str("\n... [TRUNCATED: remaining content exceeded budget]");
+            let target = self.budget.max_file_bytes.saturating_sub(marker.len());
+            let keep = content
+                .char_indices()
+                .map(|(idx, _)| idx)
+                .take_while(|&idx| idx <= target)
+                .last()
+                .unwrap_or(0);
+            content.truncate(keep);
+            content.push_str(marker);
             is_truncated = true;
         } else if is_truncated {
             content.push_str(&format!(
