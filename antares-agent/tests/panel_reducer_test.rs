@@ -42,7 +42,9 @@ fn test_all_lifecycle_state_transitions() {
     assert_eq!(state.active_session_id.as_deref(), Some("session-p2-001"));
 
     // 5. Streaming state
-    state.reduce(PanelAction::SetInputDraft("Explain Rust Edition 2024".to_string()));
+    state.reduce(PanelAction::SetInputDraft(
+        "Explain Rust Edition 2024".to_string(),
+    ));
     assert!(state.can_send());
     let effects = state.reduce(PanelAction::SubmitPrompt);
     assert_eq!(state.lifecycle, PanelLifecycle::Streaming);
@@ -73,7 +75,9 @@ fn test_all_lifecycle_state_transitions() {
     assert_eq!(state.status_text(), "Ready");
 
     // 7. Auth-required state
-    state.reduce(PanelAction::RequireAuth("Missing ANTHROPIC_API_KEY".to_string()));
+    state.reduce(PanelAction::RequireAuth(
+        "Missing ANTHROPIC_API_KEY".to_string(),
+    ));
     assert_eq!(
         state.lifecycle,
         PanelLifecycle::AuthRequired {
@@ -148,7 +152,9 @@ fn test_cancel_and_workspace_switch_cancels_stale_work() {
     // Start streaming
     state.reduce(PanelAction::SubmitPrompt);
     assert!(state.is_streaming());
-    state.reduce(PanelAction::AppendTextDelta("Partial response...".to_string()));
+    state.reduce(PanelAction::AppendTextDelta(
+        "Partial response...".to_string(),
+    ));
 
     // User switches workspace
     let effects = state.reduce(PanelAction::SwitchWorkspace);
@@ -205,7 +211,9 @@ fn test_tool_activity_tracking_in_transcript() {
     );
 
     // Assistant generates summary after tool
-    state.reduce(PanelAction::AppendTextDelta("Found main function.".to_string()));
+    state.reduce(PanelAction::AppendTextDelta(
+        "Found main function.".to_string(),
+    ));
     state.reduce(PanelAction::FinishStreaming);
 
     assert_eq!(state.messages[1].content, "Found main function.");

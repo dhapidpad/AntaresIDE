@@ -27,10 +27,7 @@ pub enum PanelLifecycle {
     /// Agent child process disconnected or exited.
     Disconnected,
     /// Agent or protocol encountered an error.
-    Error {
-        message: String,
-        code: Option<i64>,
-    },
+    Error { message: String, code: Option<i64> },
 }
 
 /// Role of a message author in the conversation transcript.
@@ -146,10 +143,7 @@ pub enum PanelAction {
     /// Agent indicated authentication or API credential required.
     RequireAuth(String),
     /// Generic or session-level error reported.
-    ReportError {
-        message: String,
-        code: Option<i64>,
-    },
+    ReportError { message: String, code: Option<i64> },
     /// User switched workspace; cancels in-flight work and resets active context.
     SwitchWorkspace,
     /// Clear transcript messages for the current view.
@@ -160,10 +154,18 @@ impl PanelAction {
     /// Convert an incoming ACP session event into a corresponding panel action.
     pub fn from_session_event(event: SessionEvent) -> Option<Self> {
         match event {
-            SessionEvent::TextDelta(delta) => Some(PanelAction::AppendTextDelta(delta)),
-            SessionEvent::ToolCall { id, name, arguments } => {
-                Some(PanelAction::AddToolActivity { id, name, arguments })
+            SessionEvent::TextDelta(delta) => {
+                Some(PanelAction::AppendTextDelta(delta))
             }
+            SessionEvent::ToolCall {
+                id,
+                name,
+                arguments,
+            } => Some(PanelAction::AddToolActivity {
+                id,
+                name,
+                arguments,
+            }),
             SessionEvent::ToolResult { id, result } => {
                 Some(PanelAction::UpdateToolActivity {
                     id,
@@ -348,7 +350,11 @@ impl PanelState {
                     }
                 }
             }
-            PanelAction::AddToolActivity { id, name, arguments } => {
+            PanelAction::AddToolActivity {
+                id,
+                name,
+                arguments,
+            } => {
                 if self.lifecycle == PanelLifecycle::Streaming {
                     if let Some(last_msg) = self.messages.last_mut() {
                         if last_msg.role == ChatRole::Assistant {
@@ -415,13 +421,15 @@ impl PanelState {
                 }
             }
             PanelAction::RequireAuth(reason) => {
-                self.lifecycle =
-                    PanelLifecycle::AuthRequired { reason: reason.clone() };
+                self.lifecycle = PanelLifecycle::AuthRequired {
+                    reason: reason.clone(),
+                };
                 self.status_message = Some(reason);
             }
             PanelAction::ReportError { message, code } => {
                 if let Some(last_msg) = self.messages.last_mut() {
-                    if last_msg.role == ChatRole::Assistant && last_msg.is_streaming {
+                    if last_msg.role == ChatRole::Assistant && last_msg.is_streaming
+                    {
                         last_msg.is_streaming = false;
                     }
                 }
@@ -655,7 +663,9 @@ mod tests {
         assert_eq!(state.status_text(), "Error");
         assert_eq!(
             effects,
-            vec![PanelSideEffect::NotifyError("Connection timeout".to_string())]
+            vec![PanelSideEffect::NotifyError(
+                "Connection timeout".to_string()
+            )]
         );
     }
 
@@ -673,7 +683,9 @@ mod tests {
     #[test]
     fn test_from_session_event_mapping() {
         assert_eq!(
-            PanelAction::from_session_event(SessionEvent::TextDelta("hi".to_string())),
+            PanelAction::from_session_event(SessionEvent::TextDelta(
+                "hi".to_string()
+            )),
             Some(PanelAction::AppendTextDelta("hi".to_string()))
         );
         assert_eq!(
