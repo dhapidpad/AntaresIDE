@@ -293,8 +293,5 @@ impl McpBridge {
 
             other => Err(McpToolError::UnknownTool(other.to_string())),
         }
-
-            other => Err(McpToolError::UnknownTool(other.to_string())),
-        }
     }
 }
