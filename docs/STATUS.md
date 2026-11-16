@@ -1,28 +1,32 @@
 # Antares implementation status
 
-- **Phase:** P3 completed — Editor Context, Path Validation & Workspace Containment, Secret Redaction, and Resource Budgeting verified green in CI.
-- **Done in this phase (Phase 3):**
-  - Context & Security Engine (`antares-agent/src/context.rs`):
-    - Strict workspace containment and canonical path validation (`validate_path`): rejects parent directory traversal (`..`), symlink escapes escaping workspace root, and non-existent paths.
-    - Sensitive file protection: blocked filenames (`.env`, `id_rsa`, `id_ed25519`, `credentials.json`, etc.) and sensitive extensions (`*.pem`, `*.key`, `*.pfx`, etc.).
-    - Binary file exclusion: fast binary file extension filter (`*.exe`, `*.bin`, `*.wasm`, etc.) and 4KB null-byte header check.
-    - Secret redaction engine (`redact_secrets`): pattern-based scanning and redaction for AWS keys (`AKIA...`), GitHub personal access tokens (`ghp_...`), Anthropic API keys (`sk-ant-...`), OpenAI/generic API keys (`sk-...`), Google/Gemini API keys (`AIza...`), and generic password/secret key-value assignments replaced with `[REDACTED: ...]`.
-    - Context snapshot builder (`build_snapshot`): bundles active file, selected text range (`EditorRange`, `SelectionContext`), file contents, LSP diagnostics (`DiagnosticItem`, `DiagnosticSeverity`), byte count, and timestamp.
-    - Resource budgeting (`ContextBudget`): enforces max file bytes (with explicit truncation marker `... [TRUNCATED: remaining content exceeded budget]`), max lines per file, and max total snapshot bytes.
-  - Integration & Security Test Suite (`antares-agent/tests/context_security_test.rs`):
-    - Traversal rejection (`..` relative traversal and outside workspace absolute paths).
-    - Symlink escape rejection.
-    - Protected file and secret extension rejection.
-    - Binary file exclusion (extension + null byte).
-    - Large file truncation and explicit budget bounds.
-    - Secret redaction verification across multiple token families.
-    - Workspace switch invalidation: ensures files from old workspace cannot be validated or ingested under new workspace.
-  - CI Verification: GitHub Actions [Run 43900622891](https://github.com/dhapidpad/AntaresIDE/actions/runs/43900622891) — **ALL 32 TESTS PASSED** (unit tests + contract tests + reducer tests + security integration tests), `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
+- **Phase:** P4 completed — MCP bridge, controlled changes, atomic patch application with undo, and command approvals verified green in CI.
+- **Done in this phase (Phase 4):**
+  - Host-Owned `antares-workspace` MCP Tool Bridge (`antares-agent/src/mcp.rs`):
+    - `workspace_read_file`: reads file with path traversal/containment validation, secret filtering, secret redaction, and budgeting.
+    - `workspace_list_directory`: lists directories strictly bounded inside active workspace.
+    - `workspace_propose_patch`: submits structured patch proposal for user review prior to apply.
+    - `workspace_request_command`: submits command request for explicit user confirmation.
+    - Fails closed on direct write/exec attempts (`write_file`, `bash`, `exec`, etc.) with `PermissionDenied`.
+  - Patch Proposal & Approval Engine (`antares-agent/src/patch.rs`):
+    - Structured patch model (`PatchProposal`, `PatchHunk`, `ProposalStatus`).
+    - Cryptographic base revision hashing (`compute_hash`) and stale revision rejection (`StaleBaseRevision`).
+    - Atomic disk writes via temporary sibling files and atomic renames.
+    - Full undo support (`revert_patch`) restoring exact pre-patch byte contents.
+    - Command proposal lifecycle (`CommandProposal`, `CommandStatus::PendingApproval`).
+  - Integration Test Suite (`antares-agent/tests/patch_approval_test.rs`):
+    - Rejection of direct agent writes and commands.
+    - Path security, secret blocking, and secret redaction enforcement during tool calls.
+    - Full proposal approval and undo cycle.
+    - Stale base revision detection preventing corrupted applies.
+    - Command proposal approval lifecycle.
+  - CI Verification: GitHub Actions [Run 43902459163](https://github.com/dhapidpad/AntaresIDE/actions/runs/43902459163) — **ALL 38 TESTS PASSED** (unit tests + contract tests + reducer tests + security tests + patch approval integration tests), `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
 - **Done in previous phases:**
   - Phase 0: Fork bootstrap, Antares overlay integration, workspace setup, green CI ([Run 43890242012](https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012)).
   - Phase 1: Octomind ACP supervisor, stdio isolation, bounded stderr ring-buffer, AgentSession state machine, contract test suite ([Run 43894324584](https://github.com/dhapidpad/AntaresIDE/actions/runs/43894324584)).
   - Phase 2: Native Floem AI panel, pure headless domain state machine & reducer, session bridge, and 24/24 tests verified green in CI ([Run 43897881034](https://github.com/dhapidpad/AntaresIDE/actions/runs/43897881034)).
-- **Not done:** MCP bridge and diff proposal / patch approval pipeline (P4); multi-turn session persistence & agent capabilities (P5); UI & performance hardening (P6); Antares branding and desktop packaging (P7); reliability & public release readiness (P8).
-- **Next:** Phase 4 — MCP Bridge & Controlled Changes (host-owned read-only tools, patch proposals, unified diff parser/validator, base revision revalidation, pending command approvals).
+  - Phase 3: Editor context, path validation & workspace containment, secret redaction, and resource budgeting ([Run 43900622891](https://github.com/dhapidpad/AntaresIDE/actions/runs/43900622891)).
+- **Not done:** Multi-turn session persistence & agent capabilities (P5); UI & performance hardening (P6); Antares branding and desktop packaging (P7); reliability & public release readiness (P8).
+- **Next:** Phase 5 — Agent Capabilities (multi-turn session persistence, specialist role picker, provider configuration, budget and token usage tracking).
 - **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is executed and confirmed via GitHub Actions CI and GitHub Codespaces.
 - **Assumptions:** Lapce upstream master as pinned; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned; ACP over stdio is the primary transport; Gemini 3.8 Flash is the Antigravity coding model.
