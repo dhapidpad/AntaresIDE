@@ -36,11 +36,11 @@ impl PrivacyFilter {
         let mut scrubbed = text.to_string();
 
         let patterns = [
-            ("AIza[0-9A-Za-z-_]{35}", "[REDACTED_GEMINI_KEY]"),
-            ("sk-[0-9A-Za-z-_]{20,}", "[REDACTED_API_KEY]"),
-            ("octo_[0-9A-Za-z]{24,}", "[REDACTED_OCTOMIND_TOKEN]"),
-            ("Bearer [0-9A-Za-z-_.]+", "Bearer [REDACTED_TOKEN]"),
-            ("ghp_[0-9A-Za-z]{36}", "[REDACTED_GITHUB_TOKEN]"),
+            (r"AIza[A-Za-z0-9_-]{20,}", "[REDACTED_GEMINI_KEY]"),
+            (r"sk-[A-Za-z0-9_-]{20,}", "[REDACTED_API_KEY]"),
+            (r"octo_[A-Za-z0-9_-]{16,}", "[REDACTED_OCTOMIND_TOKEN]"),
+            (r"Bearer\s+[A-Za-z0-9_\-.]+", "Bearer [REDACTED_TOKEN]"),
+            (r"ghp_[A-Za-z0-9_-]{20,}", "[REDACTED_GITHUB_TOKEN]"),
         ];
 
         for (pattern, replacement) in patterns {
