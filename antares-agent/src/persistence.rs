@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::ui_state::ChatMessage;
 
 /// Fully serializable multi-turn session archive.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PersistentSession {
     pub session_id: String,
     pub workspace_root: PathBuf,

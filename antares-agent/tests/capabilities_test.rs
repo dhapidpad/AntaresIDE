@@ -23,18 +23,24 @@ fn test_multi_turn_session_atomic_save_and_reload() {
     // Multi-turn messages
     session.append_message(
         ChatMessage {
+            id: "msg-1".to_string(),
             role: ChatRole::User,
             content: "Please inspect calculator.rs".to_string(),
             tool_activities: vec![],
+            is_streaming: false,
+            timestamp_ms: 1001,
         },
         1001,
     );
     session.append_message(
         ChatMessage {
+            id: "msg-2".to_string(),
             role: ChatRole::Assistant,
             content: "I inspected the file. It implements basic addition."
                 .to_string(),
             tool_activities: vec![],
+            is_streaming: false,
+            timestamp_ms: 1002,
         },
         1002,
     );
