@@ -14,8 +14,8 @@ pub mod ui_state;
 use std::path::PathBuf;
 
 pub use context::{
-    redact_secrets, ContextBudget, ContextError, ContextService, ContextSnapshot,
-    DiagnosticItem, DiagnosticSeverity, EditorRange, FileContext, SelectionContext,
+    ContextBudget, ContextError, ContextService, ContextSnapshot, DiagnosticItem,
+    DiagnosticSeverity, EditorRange, FileContext, SelectionContext, redact_secrets,
 };
 pub use error::AgentError;
 pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};

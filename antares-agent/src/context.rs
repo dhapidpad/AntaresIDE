@@ -55,7 +55,12 @@ pub struct EditorRange {
 }
 
 impl EditorRange {
-    pub fn new(start_line: usize, start_col: usize, end_line: usize, end_col: usize) -> Self {
+    pub fn new(
+        start_line: usize,
+        start_col: usize,
+        end_line: usize,
+        end_col: usize,
+    ) -> Self {
         Self {
             start_line,
             start_col,
@@ -113,8 +118,8 @@ pub struct ContextBudget {
 impl Default for ContextBudget {
     fn default() -> Self {
         Self {
-            max_file_bytes: 64 * 1024,      // 64 KB per file
-            max_total_bytes: 256 * 1024,    // 256 KB total snapshot
+            max_file_bytes: 64 * 1024,   // 64 KB per file
+            max_total_bytes: 256 * 1024, // 256 KB total snapshot
             max_lines_per_file: 2000,
         }
     }
@@ -145,10 +150,14 @@ pub struct ContextService {
 
 impl ContextService {
     /// Initialize context service over a designated workspace root.
-    pub fn new(workspace_root: impl AsRef<Path>, budget: ContextBudget) -> Result<Self, ContextError> {
+    pub fn new(
+        workspace_root: impl AsRef<Path>,
+        budget: ContextBudget,
+    ) -> Result<Self, ContextError> {
         let root = workspace_root.as_ref().to_path_buf();
         let canonical_root = if root.exists() {
-            root.canonicalize().map_err(|e| ContextError::Io(e.to_string()))?
+            root.canonicalize()
+                .map_err(|e| ContextError::Io(e.to_string()))?
         } else {
             root.clone()
         };
@@ -198,7 +207,10 @@ impl ContextService {
     }
 
     /// Validate that a requested path is strictly contained within the workspace root.
-    pub fn validate_path(&self, requested: impl AsRef<Path>) -> Result<PathBuf, ContextError> {
+    pub fn validate_path(
+        &self,
+        requested: impl AsRef<Path>,
+    ) -> Result<PathBuf, ContextError> {
         let path = requested.as_ref();
 
         // 1. Reject explicit parent traversal components in relative paths
@@ -227,7 +239,9 @@ impl ContextService {
 
         // 5. Enforce root containment (prevent symlink escapes)
         if !canonical.starts_with(&self.canonical_root) {
-            return Err(ContextError::SymlinkEscape(canonical.display().to_string()));
+            return Err(ContextError::SymlinkEscape(
+                canonical.display().to_string(),
+            ));
         }
 
         // 6. Security filter: Block known sensitive filenames
@@ -235,7 +249,9 @@ impl ContextService {
             if self.protected_names.contains(file_name)
                 || file_name.starts_with(".env")
             {
-                return Err(ContextError::ProtectedFileBlocked(file_name.to_string()));
+                return Err(ContextError::ProtectedFileBlocked(
+                    file_name.to_string(),
+                ));
             }
         }
 
@@ -243,10 +259,16 @@ impl ContextService {
         if let Some(ext) = canonical.extension().and_then(|e| e.to_str()) {
             let ext_lower = ext.to_lowercase();
             if self.protected_extensions.contains(&ext_lower) {
-                return Err(ContextError::ProtectedFileBlocked(format!("*.{}", ext_lower)));
+                return Err(ContextError::ProtectedFileBlocked(format!(
+                    "*.{}",
+                    ext_lower
+                )));
             }
             if self.binary_extensions.contains(&ext_lower) {
-                return Err(ContextError::BinaryFileExcluded(format!("*.{}", ext_lower)));
+                return Err(ContextError::BinaryFileExcluded(format!(
+                    "*.{}",
+                    ext_lower
+                )));
             }
         }
 
@@ -254,10 +276,14 @@ impl ContextService {
     }
 
     /// Read and redact a validated file within budget constraints.
-    pub fn read_file_context(&self, path: impl AsRef<Path>) -> Result<FileContext, ContextError> {
+    pub fn read_file_context(
+        &self,
+        path: impl AsRef<Path>,
+    ) -> Result<FileContext, ContextError> {
         let canonical = self.validate_path(path)?;
 
-        let bytes = fs::read(&canonical).map_err(|e| ContextError::Io(e.to_string()))?;
+        let bytes =
+            fs::read(&canonical).map_err(|e| ContextError::Io(e.to_string()))?;
 
         // Binary check: null byte detection
         if bytes.iter().take(4096).any(|&b| b == 0) {
@@ -376,7 +402,8 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
             if redacted_line.len() >= start + 20 {
                 let candidate = &redacted_line[start..start + 20];
                 if candidate.chars().all(|c| c.is_ascii_alphanumeric()) {
-                    redacted_line.replace_range(start..start + 20, "[REDACTED: AWS_KEY]");
+                    redacted_line
+                        .replace_range(start..start + 20, "[REDACTED: AWS_KEY]");
                     count += 1;
                 }
             }
@@ -387,7 +414,8 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
             if let Some(start) = redacted_line.find(prefix) {
                 if redacted_line.len() >= start + 40 {
                     let end = (start + 40).min(redacted_line.len());
-                    redacted_line.replace_range(start..end, "[REDACTED: GITHUB_TOKEN]");
+                    redacted_line
+                        .replace_range(start..end, "[REDACTED: GITHUB_TOKEN]");
                     count += 1;
                 }
             }
@@ -397,10 +425,15 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
         if let Some(start) = redacted_line.find("sk-ant-") {
             let rest = &redacted_line[start..];
             let end_offset = rest
-                .find(|c: char| c.is_whitespace() || c == '"' || c == '\'' || c == ';')
+                .find(|c: char| {
+                    c.is_whitespace() || c == '"' || c == '\'' || c == ';'
+                })
                 .unwrap_or(rest.len());
             if end_offset >= 15 {
-                redacted_line.replace_range(start..start + end_offset, "[REDACTED: ANTHROPIC_KEY]");
+                redacted_line.replace_range(
+                    start..start + end_offset,
+                    "[REDACTED: ANTHROPIC_KEY]",
+                );
                 count += 1;
             }
         }
@@ -410,10 +443,15 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
             if !redacted_line[start..].starts_with("[REDACTED:") {
                 let rest = &redacted_line[start..];
                 let end_offset = rest
-                    .find(|c: char| c.is_whitespace() || c == '"' || c == '\'' || c == ';')
+                    .find(|c: char| {
+                        c.is_whitespace() || c == '"' || c == '\'' || c == ';'
+                    })
                     .unwrap_or(rest.len());
                 if end_offset >= 20 {
-                    redacted_line.replace_range(start..start + end_offset, "[REDACTED: API_KEY]");
+                    redacted_line.replace_range(
+                        start..start + end_offset,
+                        "[REDACTED: API_KEY]",
+                    );
                     count += 1;
                 }
             }
@@ -423,8 +461,12 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
         if let Some(start) = redacted_line.find("AIza") {
             if redacted_line.len() >= start + 39 {
                 let candidate = &redacted_line[start..start + 39];
-                if candidate.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-') {
-                    redacted_line.replace_range(start..start + 39, "[REDACTED: GEMINI_KEY]");
+                if candidate
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+                {
+                    redacted_line
+                        .replace_range(start..start + 39, "[REDACTED: GEMINI_KEY]");
                     count += 1;
                 }
             }
@@ -441,11 +483,11 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
                     if trimmed.starts_with('"') && trimmed.len() > 2 {
                         if let Some(end_quote) = trimmed[1..].find('"') {
                             let secret_val = &trimmed[1..=end_quote];
-                            if !secret_val.starts_with("[REDACTED") && secret_val.len() > 3 {
-                                redacted_line = redacted_line.replace(
-                                    secret_val,
-                                    "[REDACTED: SECRET_VALUE]",
-                                );
+                            if !secret_val.starts_with("[REDACTED")
+                                && secret_val.len() > 3
+                            {
+                                redacted_line = redacted_line
+                                    .replace(secret_val, "[REDACTED: SECRET_VALUE]");
                                 count += 1;
                             }
                         }
@@ -630,7 +672,10 @@ mod tests {
         assert_eq!(snapshot.active_file.as_deref(), Some("main.rs"));
         assert_eq!(snapshot.files.len(), 1);
         assert_eq!(snapshot.diagnostics.len(), 1);
-        assert_eq!(snapshot.diagnostics[0].severity, DiagnosticSeverity::Warning);
+        assert_eq!(
+            snapshot.diagnostics[0].severity,
+            DiagnosticSeverity::Warning
+        );
         assert_eq!(snapshot.selection.unwrap().selected_text, "fn add");
     }
 }

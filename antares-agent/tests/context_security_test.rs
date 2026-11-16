@@ -54,7 +54,10 @@ fn test_parent_traversal_and_absolute_escape_rejected() {
     // Absolute path outside workspace
     let err2 = service.validate_path(&outside).unwrap_err();
     assert!(
-        matches!(err2, ContextError::SymlinkEscape(_) | ContextError::OutsideWorkspace(_)),
+        matches!(
+            err2,
+            ContextError::SymlinkEscape(_) | ContextError::OutsideWorkspace(_)
+        ),
         "Expected escape detection, got {:?}",
         err2
     );
@@ -203,7 +206,8 @@ fn test_workspace_switch_invalidates_context() {
     let file2 = dir2.path().join("file2.txt");
     fs::write(&file2, "workspace 2 content").unwrap();
 
-    let service1 = ContextService::new(dir1.path(), ContextBudget::default()).unwrap();
+    let service1 =
+        ContextService::new(dir1.path(), ContextBudget::default()).unwrap();
     let snap1 = service1
         .build_snapshot(Some(&file1), None, &[], vec![], 1)
         .unwrap();
@@ -211,7 +215,8 @@ fn test_workspace_switch_invalidates_context() {
     assert_eq!(snap1.files[0].relative_path, "file1.txt");
 
     // Switching to service2
-    let service2 = ContextService::new(dir2.path(), ContextBudget::default()).unwrap();
+    let service2 =
+        ContextService::new(dir2.path(), ContextBudget::default()).unwrap();
 
     // Trying to read file1 from workspace 1 under service2 must fail
     assert!(service2.validate_path(&file1).is_err());
