@@ -207,19 +207,15 @@ impl ProcessSupervisor {
                             }
                         }
                         Ok(JsonRpcMessage::Notification(notif)) => {
-                            if notif.method == "session/update" {
-                                if let Some(ref params_val) = notif.params {
-                                    if let Ok(params) = serde_json::from_value::<
-                                        SessionUpdateParams,
-                                    >(
-                                        params_val.clone()
-                                    ) {
-                                        let _ = event_tx_clone.send(
-                                            SupervisorEvent::SessionUpdate(params),
-                                        );
-                                        continue;
-                                    }
-                                }
+                            if notif.method == "session/update"
+                                && let Some(ref params_val) = notif.params
+                                && let Ok(params) = serde_json::from_value::<SessionUpdateParams>(
+                                    params_val.clone(),
+                                )
+                            {
+                                let _ = event_tx_clone
+                                    .send(SupervisorEvent::SessionUpdate(params));
+                                continue;
                             }
                             let _ = event_tx_clone
                                 .send(SupervisorEvent::Notification(notif));
@@ -375,12 +371,10 @@ impl ProcessSupervisor {
     /// Read the child's exit code if it has exited.
     pub fn exit_code(&self) -> Option<i32> {
         let mut child_guard = self.child.lock();
-        if let Some(child) = child_guard.as_mut() {
-            if let Ok(Some(status)) = child.try_wait() {
-                return status.code();
-            }
-        }
-        None
+        child_guard
+            .as_mut()
+            .and_then(|c| c.try_wait().ok().flatten())
+            .and_then(|s| s.code())
     }
 
     /// Graceful shutdown: close writer (stdin) and wait for child exit up to timeout.

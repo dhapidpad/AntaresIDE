@@ -227,10 +227,8 @@ impl SessionUpdateParams {
             return SessionEvent::Status(status.to_string());
         }
 
-        if let Some(done) = self.update.get("completed").and_then(Value::as_bool) {
-            if done {
-                return SessionEvent::Completed;
-            }
+        if self.update.get("completed").and_then(Value::as_bool) == Some(true) {
+            return SessionEvent::Completed;
         }
 
         SessionEvent::Extension(self.update.clone())
