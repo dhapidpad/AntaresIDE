@@ -1,33 +1,28 @@
 # Antares implementation status
 
-- **Phase:** P2 completed — Native Floem AI panel, pure headless domain state machine & reducer, session bridge, and 24/24 tests verified green in CI.
-- **Done in this phase (Phase 2):**
-  - Pure headless panel domain state machine & reducer (`antares-agent/src/ui_state.rs`):
-    - Full lifecycle states: `Idle`, `Starting`, `Ready`, `Streaming`, `Cancelling`, `AuthRequired`, `Disconnected`, `Error`.
-    - Chat message model with author roles (`User`, `Assistant`, `System`), incremental streaming text accumulation, and tool activity tracking (`Running`, `Completed`, `Failed`).
-    - Session management model (`SessionSummary`, active session selector, session creation/switching).
-    - Event mapping bridge translating ACP `SessionEvent`s (`TextDelta`, `ToolCall`, `ToolResult`, `Completed`) into typed `PanelAction`s.
-    - Pure reducer logic with deterministic side effects (`LaunchProcess`, `SendPrompt`, `SendCancel`, `NotifyError`).
-    - Guarded prompt submission (`can_send`) and cancellation (`can_cancel`).
-    - Workspace switch handler: cancels in-flight agent turns and safely clears stale context.
-  - Native Floem AI Panel in Lapce (`lapce-app/src/antares/`):
-    - `lapce-app/src/antares/data.rs`: `AntaresPanelData` reactive bridge binding `PanelState` to Floem `RwSignal`.
-    - `lapce-app/src/antares/panel.rs`: `antares_panel` view with header bar (status badge, clear transcript icon), scrollable message transcript with user/assistant bubbles and tool activity cards, error/auth banner, and input composer with Send and Cancel buttons.
-    - `lapce-app/src/panel/kind.rs`: Registered `PanelKind::Antares` with `LapceIcons::LIGHTBULB` and default position `RightTop`.
-    - `lapce-app/src/panel/data.rs`: Placed `PanelKind::Antares` in `default_panel_order()` for `PanelPosition::RightTop`.
-    - `lapce-app/src/panel/view.rs`: Added view dispatch for `PanelKind::Antares` and tooltip "Antares AI".
-    - `lapce-app/src/window_tab.rs`: Wired `antares_data` into `WindowTabData` and added focus toggle handling.
-    - `docs/PATCHES.md`: Updated with all upstream touchpoints, reasons, and re-apply hints.
-  - Integration & Unit Test Suite (`antares-agent/tests/panel_reducer_test.rs`):
-    - `test_all_lifecycle_state_transitions`: All 8 lifecycle states verified.
-    - `test_streaming_long_transcript_does_not_rebuild_messages`: Verified 1,000 streamed token deltas accumulate in-place without transcript reallocation.
-    - `test_cancel_and_workspace_switch_cancels_stale_work`: Verified cancellation side-effects and context invalidation.
-    - `test_tool_activity_tracking_in_transcript`: Verified tool activity lifecycle and output tracking.
-  - CI Verification: GitHub Actions [Run 43897881034](https://github.com/dhapidpad/AntaresIDE/actions/runs/43897881034) — **ALL 24 TESTS PASSED**, `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
+- **Phase:** P3 completed — Editor Context, Path Validation & Workspace Containment, Secret Redaction, and Resource Budgeting verified green in CI.
+- **Done in this phase (Phase 3):**
+  - Context & Security Engine (`antares-agent/src/context.rs`):
+    - Strict workspace containment and canonical path validation (`validate_path`): rejects parent directory traversal (`..`), symlink escapes escaping workspace root, and non-existent paths.
+    - Sensitive file protection: blocked filenames (`.env`, `id_rsa`, `id_ed25519`, `credentials.json`, etc.) and sensitive extensions (`*.pem`, `*.key`, `*.pfx`, etc.).
+    - Binary file exclusion: fast binary file extension filter (`*.exe`, `*.bin`, `*.wasm`, etc.) and 4KB null-byte header check.
+    - Secret redaction engine (`redact_secrets`): pattern-based scanning and redaction for AWS keys (`AKIA...`), GitHub personal access tokens (`ghp_...`), Anthropic API keys (`sk-ant-...`), OpenAI/generic API keys (`sk-...`), Google/Gemini API keys (`AIza...`), and generic password/secret key-value assignments replaced with `[REDACTED: ...]`.
+    - Context snapshot builder (`build_snapshot`): bundles active file, selected text range (`EditorRange`, `SelectionContext`), file contents, LSP diagnostics (`DiagnosticItem`, `DiagnosticSeverity`), byte count, and timestamp.
+    - Resource budgeting (`ContextBudget`): enforces max file bytes (with explicit truncation marker `... [TRUNCATED: remaining content exceeded budget]`), max lines per file, and max total snapshot bytes.
+  - Integration & Security Test Suite (`antares-agent/tests/context_security_test.rs`):
+    - Traversal rejection (`..` relative traversal and outside workspace absolute paths).
+    - Symlink escape rejection.
+    - Protected file and secret extension rejection.
+    - Binary file exclusion (extension + null byte).
+    - Large file truncation and explicit budget bounds.
+    - Secret redaction verification across multiple token families.
+    - Workspace switch invalidation: ensures files from old workspace cannot be validated or ingested under new workspace.
+  - CI Verification: GitHub Actions [Run 43900622891](https://github.com/dhapidpad/AntaresIDE/actions/runs/43900622891) — **ALL 32 TESTS PASSED** (unit tests + contract tests + reducer tests + security integration tests), `cargo fmt` clean, `cargo clippy -D warnings` clean (0 warnings).
 - **Done in previous phases:**
   - Phase 0: Fork bootstrap, Antares overlay integration, workspace setup, green CI ([Run 43890242012](https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012)).
   - Phase 1: Octomind ACP supervisor, stdio isolation, bounded stderr ring-buffer, AgentSession state machine, contract test suite ([Run 43894324584](https://github.com/dhapidpad/AntaresIDE/actions/runs/43894324584)).
-- **Not done:** Workspace context gathering & read-only bridge (P3); diff view & apply pipeline (P4); multi-turn session persistence & rollback (P5); performance & crash recovery hardening (P6); desktop packaging & release (P7).
-- **Next:** Phase 3 — Editor Context (active file, selected range, diagnostics through Lapce APIs, canonical path checks, ignore rules, redaction, bounded context token budgets).
+  - Phase 2: Native Floem AI panel, pure headless domain state machine & reducer, session bridge, and 24/24 tests verified green in CI ([Run 43897881034](https://github.com/dhapidpad/AntaresIDE/actions/runs/43897881034)).
+- **Not done:** MCP bridge and diff proposal / patch approval pipeline (P4); multi-turn session persistence & agent capabilities (P5); UI & performance hardening (P6); Antares branding and desktop packaging (P7); reliability & public release readiness (P8).
+- **Next:** Phase 4 — MCP Bridge & Controlled Changes (host-owned read-only tools, patch proposals, unified diff parser/validator, base revision revalidation, pending command approvals).
 - **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is executed and confirmed via GitHub Actions CI and GitHub Codespaces.
 - **Assumptions:** Lapce upstream master as pinned; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned; ACP over stdio is the primary transport; Gemini 3.8 Flash is the Antigravity coding model.
