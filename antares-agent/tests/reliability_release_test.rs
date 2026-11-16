@@ -4,8 +4,8 @@
 use std::fs;
 
 use antares_agent::{
-    AuditEventKind, AuditLog, CheckStatus, HealthAuditor, PrivacyFilter, RecoveryManager,
-    TurnPhase,
+    AuditEventKind, AuditLog, CheckStatus, HealthAuditor, PrivacyFilter,
+    RecoveryManager, TurnPhase,
 };
 use tempfile::tempdir;
 
@@ -25,7 +25,12 @@ fn test_crash_recovery_wal_and_interrupted_turn_restoration() {
 
     // 3. Update turn progress
     recovery
-        .update_phase(TurnPhase::StreamingTurn { chunks_received: 42 }, 1050)
+        .update_phase(
+            TurnPhase::StreamingTurn {
+                chunks_received: 42,
+            },
+            1050,
+        )
         .unwrap();
 
     // 4. Simulate process crash by creating a new RecoveryManager pointing to same WAL
@@ -36,7 +41,12 @@ fn test_crash_recovery_wal_and_interrupted_turn_restoration() {
     let turn = interrupted.unwrap();
     assert_eq!(turn.session_id, "sess-alpha");
     assert_eq!(turn.prompt, "Please refactor auth.rs");
-    assert_eq!(turn.phase, TurnPhase::StreamingTurn { chunks_received: 42 });
+    assert_eq!(
+        turn.phase,
+        TurnPhase::StreamingTurn {
+            chunks_received: 42
+        }
+    );
 
     // 5. Recover the turn: extracts data, clears WAL, generates user notice
     let (recovered_turn, notice) = recovery_reboot

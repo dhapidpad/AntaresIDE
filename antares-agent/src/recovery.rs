@@ -59,8 +59,9 @@ impl RecoveryManager {
         timestamp_ms: u64,
     ) -> Result<(), RecoveryError> {
         if let Some(parent) = self.wal_path.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|e| RecoveryError::Io(format!("Failed to create WAL dir: {}", e)))?;
+            fs::create_dir_all(parent).map_err(|e| {
+                RecoveryError::Io(format!("Failed to create WAL dir: {}", e))
+            })?;
         }
 
         let turn = InterruptedTurn {
@@ -99,8 +100,9 @@ impl RecoveryManager {
 
         let json = serde_json::to_string(&turn)
             .map_err(|e| RecoveryError::Serialization(e.to_string()))?;
-        fs::write(&self.wal_path, json)
-            .map_err(|e| RecoveryError::Io(format!("Failed to update WAL: {}", e)))?;
+        fs::write(&self.wal_path, json).map_err(|e| {
+            RecoveryError::Io(format!("Failed to update WAL: {}", e))
+        })?;
 
         Ok(true)
     }
@@ -108,8 +110,9 @@ impl RecoveryManager {
     /// Clear the write-ahead journal after graceful turn completion.
     pub fn record_turn_finish(&self) -> Result<bool, RecoveryError> {
         if self.wal_path.exists() {
-            fs::remove_file(&self.wal_path)
-                .map_err(|e| RecoveryError::Io(format!("Failed to clear WAL: {}", e)))?;
+            fs::remove_file(&self.wal_path).map_err(|e| {
+                RecoveryError::Io(format!("Failed to clear WAL: {}", e))
+            })?;
             Ok(true)
         } else {
             Ok(false)

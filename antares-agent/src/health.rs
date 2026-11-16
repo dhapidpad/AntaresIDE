@@ -42,13 +42,15 @@ impl HealthAuditor {
         if !meta.app_name.is_empty() && meta.app_id == "dev.antares.antares" {
             checks.push(CheckItem {
                 name: "Release Metadata".to_string(),
-                description: "Application name and ID comply with Antares branding.".to_string(),
+                description: "Application name and ID comply with Antares branding."
+                    .to_string(),
                 status: CheckStatus::Pass,
             });
         } else {
             checks.push(CheckItem {
                 name: "Release Metadata".to_string(),
-                description: "Release metadata is missing or misconfigured.".to_string(),
+                description: "Release metadata is missing or misconfigured."
+                    .to_string(),
                 status: CheckStatus::Fail {
                     error: "Invalid app_id or app_name".to_string(),
                 },
@@ -59,13 +61,15 @@ impl HealthAuditor {
         if storage_dir.exists() || std::fs::create_dir_all(storage_dir).is_ok() {
             checks.push(CheckItem {
                 name: "Storage Access".to_string(),
-                description: "Storage directory is writable and accessible.".to_string(),
+                description: "Storage directory is writable and accessible."
+                    .to_string(),
                 status: CheckStatus::Pass,
             });
         } else {
             checks.push(CheckItem {
                 name: "Storage Access".to_string(),
-                description: "Storage directory cannot be accessed or created.".to_string(),
+                description: "Storage directory cannot be accessed or created."
+                    .to_string(),
                 status: CheckStatus::Fail {
                     error: format!("Cannot access {}", storage_dir.display()),
                 },
@@ -76,7 +80,9 @@ impl HealthAuditor {
         if workspace_root.is_dir() {
             checks.push(CheckItem {
                 name: "Workspace Containment".to_string(),
-                description: "Workspace root exists and serves as security boundary.".to_string(),
+                description:
+                    "Workspace root exists and serves as security boundary."
+                        .to_string(),
                 status: CheckStatus::Pass,
             });
         } else {
@@ -94,20 +100,24 @@ impl HealthAuditor {
         if license_file.is_file() {
             checks.push(CheckItem {
                 name: "Third-Party Licenses".to_string(),
-                description: "Mandatory third-party open source notices present.".to_string(),
+                description: "Mandatory third-party open source notices present."
+                    .to_string(),
                 status: CheckStatus::Pass,
             });
         } else {
             checks.push(CheckItem {
                 name: "Third-Party Licenses".to_string(),
-                description: "THIRD_PARTY_LICENSES.md notice is missing.".to_string(),
+                description: "THIRD_PARTY_LICENSES.md notice is missing."
+                    .to_string(),
                 status: CheckStatus::Warning {
                     message: "Notice file not found at workspace root".to_string(),
                 },
             });
         }
 
-        let overall_ready = checks.iter().all(|c| !matches!(c.status, CheckStatus::Fail { .. }));
+        let overall_ready = checks
+            .iter()
+            .all(|c| !matches!(c.status, CheckStatus::Fail { .. }));
 
         HealthReport {
             overall_ready,
