@@ -6,6 +6,8 @@
 pub mod codec;
 pub mod context;
 pub mod error;
+pub mod mcp;
+pub mod patch;
 pub mod protocol;
 pub mod session;
 pub mod supervisor;
@@ -18,6 +20,11 @@ pub use context::{
     DiagnosticSeverity, EditorRange, FileContext, SelectionContext, redact_secrets,
 };
 pub use error::AgentError;
+pub use mcp::{McpBridge, McpToolError};
+pub use patch::{
+    CommandProposal, CommandStatus, PatchError, PatchHunk, PatchPipeline, PatchProposal,
+    PatchResult, ProposalStatus,
+};
 pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
 pub use session::{AgentSession, SessionState};
 pub use supervisor::{ProcessLaunchOptions, ProcessSupervisor, SupervisorEvent};
