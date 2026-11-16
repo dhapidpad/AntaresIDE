@@ -254,9 +254,7 @@ impl ContextService {
             && (self.protected_names.contains(file_name)
                 || file_name.starts_with(".env"))
         {
-            return Err(ContextError::ProtectedFileBlocked(
-                file_name.to_string(),
-            ));
+            return Err(ContextError::ProtectedFileBlocked(file_name.to_string()));
         }
 
         // 7. Security filter: Block secret extensions
@@ -427,8 +425,7 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
                 && redacted_line.len() >= start + 40
             {
                 let end = (start + 40).min(redacted_line.len());
-                redacted_line
-                    .replace_range(start..end, "[REDACTED: GITHUB_TOKEN]");
+                redacted_line.replace_range(start..end, "[REDACTED: GITHUB_TOKEN]");
                 count += 1;
             }
         }
@@ -461,10 +458,8 @@ pub fn redact_secrets(input: &str) -> (String, usize) {
                 })
                 .unwrap_or(rest.len());
             if end_offset >= 20 {
-                redacted_line.replace_range(
-                    start..start + end_offset,
-                    "[REDACTED: API_KEY]",
-                );
+                redacted_line
+                    .replace_range(start..start + end_offset, "[REDACTED: API_KEY]");
                 count += 1;
             }
         }
