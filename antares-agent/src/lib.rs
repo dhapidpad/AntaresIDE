@@ -3,16 +3,19 @@
 //! Provides child process supervision, JSON-RPC 2.0 stdio transport,
 //! session lifecycle, and contract fixtures for the Octomind 0.72.0 ACP integration.
 
+pub mod audit;
 pub mod capabilities;
 pub mod codec;
 pub mod context;
 pub mod error;
+pub mod health;
 pub mod mcp;
 pub mod metrics;
 pub mod onboarding;
 pub mod patch;
 pub mod persistence;
 pub mod protocol;
+pub mod recovery;
 pub mod release;
 pub mod session;
 pub mod supervisor;
@@ -20,6 +23,7 @@ pub mod ui_state;
 
 use std::path::PathBuf;
 
+pub use audit::{AuditEntry, AuditEventKind, AuditLog, PrivacyFilter};
 pub use capabilities::{
     AgentRole, BackgroundTask, ProviderConfig, ProviderKind, TaskManager,
     TaskStatus, TokenTracker,
@@ -29,6 +33,7 @@ pub use context::{
     DiagnosticSeverity, EditorRange, FileContext, SelectionContext, redact_secrets,
 };
 pub use error::AgentError;
+pub use health::{CheckItem, CheckStatus, HealthAuditor, HealthReport};
 pub use mcp::{McpBridge, McpToolError};
 pub use metrics::{
     BudgetViolation, LatencyStats, PerformanceBudgets, PerformanceMetrics,
@@ -42,6 +47,7 @@ pub use patch::{
 };
 pub use persistence::{PersistenceError, PersistentSession, SessionStorage};
 pub use protocol::{ContentBlock, InitializeResult, SessionEvent, SessionResult};
+pub use recovery::{InterruptedTurn, RecoveryError, RecoveryManager, TurnPhase};
 pub use release::{PlatformTarget, ReleaseMetadata};
 pub use session::{AgentSession, SessionState};
 pub use supervisor::{ProcessLaunchOptions, ProcessSupervisor, SupervisorEvent};
