@@ -1,9 +1,14 @@
 # Antares implementation status
 
-- **Phase:** P0 — starter and automated bootstrap prepared; no live fork or Codespace has been created from this environment.
-- **Done in this starter:** architecture/roadmap/security/test docs; Antigravity and Gemini rules; staged task prompts; Octomind 0.72.0 release metadata and Linux checksum-verifying installer; dedicated Antares devcontainer; Antares-prefixed CI/release/upstream-report workflows; one-click fork/clone/overlay/branch/commit/push/Codespaces script; diagnostic, static-validation, Cargo bootstrap, and CI scripts.
-- **Verified in this build session:** shell syntax; Python compilation; JSON/TOML parsing; overlay integration against a synthetic Lapce-like Git repository; second-run idempotency for Cargo member/Makefile/.gitignore; preservation of upstream LICENSE, original README backup, upstream devcontainer, upstream workflow, and upstream docs; mocked GitHub CLI one-click orchestration through the staged/no-commit path.
-- **Not done:** actual fork under the user's GitHub account; actual Codespace creation; Rust/Cargo compilation; GitHub Actions execution; real Octomind ACP integration; native AI panel; workspace context/MCP bridge; patch approval pipeline; desktop release.
-- **Next:** extract this ZIP, run `gh auth login`, then `bash scripts/one-click-setup.sh --create-codespace`. In the Codespace, run `bash scripts/antares-ci.sh fast`, inspect/commit `Cargo.lock`, then start Antigravity with `docs/12-AGENT-MASTER-PROMPT.md` and complete Phase 0 audit only.
-- **Blockers/limits:** this environment does not have Cargo/Rust and is not authorized to create a fork or Codespace in the user's GitHub account. The live GitHub operations remain user-run and require the authenticated `gh` CLI.
-- **Assumptions:** Lapce upstream master as inspected on 2026-11-16; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned as of 2026-11-16; ACP is the primary transport; Gemini 3.8 Flash is the requested Antigravity coding model, separate from the in-app provider setting.
+- **Phase:** P0 completed — live fork bootstrapped, Antares overlay integrated, and CI verified green.
+- **Done in this phase:** 
+  - Live fork created: `https://github.com/dhapidpad/AntaresIDE` from `lapce/lapce`.
+  - Working branch initialized: `agy/antares-bootstrap`.
+  - Antares overlay applied cleanly without breaking upstream Lapce files.
+  - Root `Cargo.toml` workspace members updated with `antares-agent`.
+  - First Antares crate `antares-agent` compiled, formatted, tested, and linted under Rust 1.98.0.
+  - First GitHub Actions CI run passed: https://github.com/dhapidpad/AntaresIDE/actions/runs/43890242012.
+- **Not done:** Octomind ACP child process integration (P1); native Floem AI panel (P2); workspace context / MCP bridge (P3/P4); diff approval pipeline (P4); desktop release (P7).
+- **Next:** Phase 1 — Octomind installation and ACP process (pinned Octomind 0.72.0 verification, headless child process supervisor, JSON-RPC stdio transport, mock contract tests).
+- **Blockers/limits:** Local Windows host does not have Cargo/Rust installed locally; Rust verification is reliably executed via GitHub Actions CI and GitHub Codespaces devcontainer.
+- **Assumptions:** Lapce upstream master as pinned; Rust 1.98.0 and edition 2024; Octomind 0.72.0 pinned; ACP over stdio is the primary transport; Gemini 3.8 Flash is the Antigravity coding model.
