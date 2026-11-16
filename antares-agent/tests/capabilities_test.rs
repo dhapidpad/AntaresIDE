@@ -2,8 +2,8 @@
 //! specialist role catalog, token tracking, and background tasks.
 
 use antares_agent::{
-    AgentRole, ChatMessage, ChatRole, PersistentSession, ProviderConfig, ProviderKind,
-    SessionStorage, TaskManager, TaskStatus, TokenTracker,
+    AgentRole, ChatMessage, ChatRole, PersistentSession, ProviderConfig,
+    ProviderKind, SessionStorage, TaskManager, TaskStatus, TokenTracker,
 };
 use tempfile::tempdir;
 
@@ -32,7 +32,8 @@ fn test_multi_turn_session_atomic_save_and_reload() {
     session.append_message(
         ChatMessage {
             role: ChatRole::Assistant,
-            content: "I inspected the file. It implements basic addition.".to_string(),
+            content: "I inspected the file. It implements basic addition."
+                .to_string(),
             tool_activities: vec![],
         },
         1002,
@@ -74,18 +75,42 @@ fn test_specialist_roles_catalog_and_permissions() {
 
     // 1. Coder has write/proposal tools
     let coder = roles.iter().find(|r| r.id == "coder").unwrap();
-    assert!(coder.allowed_tools.contains(&"workspace_propose_patch".to_string()));
-    assert!(coder.allowed_tools.contains(&"workspace_read_file".to_string()));
+    assert!(
+        coder
+            .allowed_tools
+            .contains(&"workspace_propose_patch".to_string())
+    );
+    assert!(
+        coder
+            .allowed_tools
+            .contains(&"workspace_read_file".to_string())
+    );
 
     // 2. Reviewer is strictly read-only
     let reviewer = roles.iter().find(|r| r.id == "reviewer").unwrap();
-    assert!(reviewer.allowed_tools.contains(&"workspace_read_file".to_string()));
-    assert!(!reviewer.allowed_tools.contains(&"workspace_propose_patch".to_string()));
-    assert!(!reviewer.allowed_tools.contains(&"workspace_request_command".to_string()));
+    assert!(
+        reviewer
+            .allowed_tools
+            .contains(&"workspace_read_file".to_string())
+    );
+    assert!(
+        !reviewer
+            .allowed_tools
+            .contains(&"workspace_propose_patch".to_string())
+    );
+    assert!(
+        !reviewer
+            .allowed_tools
+            .contains(&"workspace_request_command".to_string())
+    );
 
     // 3. Architect has read and patch proposal tools
     let architect = roles.iter().find(|r| r.id == "architect").unwrap();
-    assert!(architect.allowed_tools.contains(&"workspace_propose_patch".to_string()));
+    assert!(
+        architect
+            .allowed_tools
+            .contains(&"workspace_propose_patch".to_string())
+    );
 }
 
 #[test]

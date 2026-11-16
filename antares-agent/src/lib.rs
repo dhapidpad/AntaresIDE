@@ -18,8 +18,8 @@ pub mod ui_state;
 use std::path::PathBuf;
 
 pub use capabilities::{
-    AgentRole, BackgroundTask, ProviderConfig, ProviderKind, TaskManager, TaskStatus,
-    TokenTracker,
+    AgentRole, BackgroundTask, ProviderConfig, ProviderKind, TaskManager,
+    TaskStatus, TokenTracker,
 };
 pub use context::{
     ContextBudget, ContextError, ContextService, ContextSnapshot, DiagnosticItem,

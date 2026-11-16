@@ -134,7 +134,12 @@ impl TokenTracker {
         }
     }
 
-    pub fn record_usage(&mut self, input: usize, output: usize, price_per_million: (f64, f64)) {
+    pub fn record_usage(
+        &mut self,
+        input: usize,
+        output: usize,
+        price_per_million: (f64, f64),
+    ) {
         self.input_tokens += input;
         self.output_tokens += output;
         let input_cost = (input as f64 / 1_000_000.0) * price_per_million.0;
@@ -215,7 +220,9 @@ impl TaskManager {
         if let Some(task) = self.tasks.iter_mut().find(|t| t.id == id) {
             let is_finished = matches!(
                 status,
-                TaskStatus::Completed | TaskStatus::Failed { .. } | TaskStatus::Cancelled
+                TaskStatus::Completed
+                    | TaskStatus::Failed { .. }
+                    | TaskStatus::Cancelled
             );
             task.status = status;
             task.progress_percent = progress;

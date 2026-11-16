@@ -79,8 +79,9 @@ impl SessionStorage {
     pub fn new(storage_dir: impl AsRef<Path>) -> Result<Self, PersistenceError> {
         let dir = storage_dir.as_ref().to_path_buf();
         if !dir.exists() {
-            fs::create_dir_all(&dir)
-                .map_err(|e| PersistenceError::Io(format!("Cannot create session dir: {}", e)))?;
+            fs::create_dir_all(&dir).map_err(|e| {
+                PersistenceError::Io(format!("Cannot create session dir: {}", e))
+            })?;
         }
         Ok(Self { storage_dir: dir })
     }
@@ -92,39 +93,58 @@ impl SessionStorage {
     fn session_file_path(&self, session_id: &str) -> PathBuf {
         let sanitized = session_id
             .chars()
-            .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
+            .map(|c| {
+                if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                    c
+                } else {
+                    '_'
+                }
+            })
             .collect::<String>();
         self.storage_dir.join(format!("{}.json", sanitized))
     }
 
     /// Save a persistent session atomically to disk.
-    pub fn save_session(&self, session: &PersistentSession) -> Result<PathBuf, PersistenceError> {
+    pub fn save_session(
+        &self,
+        session: &PersistentSession,
+    ) -> Result<PathBuf, PersistenceError> {
         let file_path = self.session_file_path(&session.session_id);
-        let temp_path = self.storage_dir.join(format!(".{}.tmp", session.session_id));
+        let temp_path = self
+            .storage_dir
+            .join(format!(".{}.tmp", session.session_id));
 
         let json_text = serde_json::to_string_pretty(session)
             .map_err(|e| PersistenceError::Serialization(e.to_string()))?;
 
-        fs::write(&temp_path, json_text)
-            .map_err(|e| PersistenceError::Io(format!("Failed to write temp session: {}", e)))?;
+        fs::write(&temp_path, json_text).map_err(|e| {
+            PersistenceError::Io(format!("Failed to write temp session: {}", e))
+        })?;
 
         if let Err(e) = fs::rename(&temp_path, &file_path) {
             let _ = fs::remove_file(&temp_path);
-            return Err(PersistenceError::Io(format!("Failed to atomic rename: {}", e)));
+            return Err(PersistenceError::Io(format!(
+                "Failed to atomic rename: {}",
+                e
+            )));
         }
 
         Ok(file_path)
     }
 
     /// Load a persistent session by ID.
-    pub fn load_session(&self, session_id: &str) -> Result<PersistentSession, PersistenceError> {
+    pub fn load_session(
+        &self,
+        session_id: &str,
+    ) -> Result<PersistentSession, PersistenceError> {
         let file_path = self.session_file_path(session_id);
         if !file_path.exists() {
             return Err(PersistenceError::NotFound(session_id.to_string()));
         }
 
-        let bytes = fs::read(&file_path)
-            .map_err(|e| PersistenceError::Io(format!("Failed to read session file: {}", e)))?;
+        let bytes = fs::read(&file_path).map_err(|e| {
+            PersistenceError::Io(format!("Failed to read session file: {}", e))
+        })?;
 
         let session: PersistentSession = serde_json::from_slice(&bytes)
             .map_err(|e| PersistenceError::Serialization(e.to_string()))?;
@@ -133,11 +153,15 @@ impl SessionStorage {
     }
 
     /// Delete a persistent session from disk.
-    pub fn delete_session(&self, session_id: &str) -> Result<bool, PersistenceError> {
+    pub fn delete_session(
+        &self,
+        session_id: &str,
+    ) -> Result<bool, PersistenceError> {
         let file_path = self.session_file_path(session_id);
         if file_path.exists() {
-            fs::remove_file(&file_path)
-                .map_err(|e| PersistenceError::Io(format!("Failed to delete session: {}", e)))?;
+            fs::remove_file(&file_path).map_err(|e| {
+                PersistenceError::Io(format!("Failed to delete session: {}", e))
+            })?;
             Ok(true)
         } else {
             Ok(false)
